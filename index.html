@@ -1536,6 +1536,8 @@ function showInstallHelp() {
   detailItem = null;
   $("#sheetBody").innerHTML = `<div class="ttl">⬇ investWEB-i telefona quraşdır</div>
     <ol class="steps" style="margin-top:12px">${steps.map(s => `<li style="margin-bottom:6px">${s}</li>`).join("")}</ol>
+    ${!ios ? `<div class="banner" style="margin:10px 0 0;border-left-color:var(--up)"><span><b>Ən asan yol (Android):</b> APK faylını birbaşa yükləyin və açın.</span>
+      <a class="btn green" href="https://github.com/keen7766/investweb/releases/download/v1.0.0/investWEB.apk" target="_blank" rel="noopener">⬇ APK yüklə</a></div>` : ""}
     ${!ios ? `<div class="banner" style="margin:10px 0 0"><span><b>Xiaomi / Redmi / POCO telefonlarında:</b> əvvəlcə Chrome-a icazə verin:<br>
       <b>Parametrlər → Tətbiqlər → Tətbiqləri idarə et → Chrome → Digər icazələr → “Ana ekran qısayolları”</b> → <b>İcazə ver</b>.<br>
       Sonra Chrome-u bağlayıb yenidən açın və yuxarıdakı addımları təkrarlayın.</span></div>` : ""}
