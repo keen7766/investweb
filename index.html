@@ -8,6 +8,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="investWEB">
 <title>investWEB</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
   /* Tünd tema (standart) */
   :root {
@@ -35,7 +38,7 @@
 
   header { display: flex; align-items: center; gap: 10px; padding: 10px 12px 6px; flex-wrap: wrap; }
   h1 { font-size: 18px; font-weight: 800; letter-spacing: -.3px; white-space: nowrap; }
-  h1 span { color: var(--accent); }
+  h1 span { color: var(--link); }
   .tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
   .tabs::-webkit-scrollbar { display: none; }
   .tabs button { flex: none; background: none; border: 0; padding: 7px 12px; color: var(--muted); white-space: nowrap; }
@@ -170,6 +173,7 @@
   </select>
   <select id="cur" title="Valyuta"><option value="USD">$ USD</option><option value="AZN">₼ AZN</option><option value="EUR">€ EUR</option></select>
   <button class="iconbtn" id="themeBtn" title="Tema dəyiş" aria-label="Tema dəyiş">☀</button>
+  <button class="btn green" id="installBtn" style="padding:5px 10px" hidden>⬇ Telefona quraşdır</button>
   <div id="status"></div>
 </div>
 
@@ -1129,6 +1133,22 @@ loadRates().then(() => { if (prefs.cur !== "USD") switchView(view); });
 loadStocks();
 loadCrypto(); setInterval(loadCrypto, 60000);
 loadFng(); setInterval(loadFng, 30 * 60000);
+
+// =================== Telefona quraşdırma (PWA) ===================
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+let installPrompt = null;
+addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); installPrompt = e;
+  const b = $("#installBtn"); b.hidden = false;
+});
+$("#installBtn").onclick = async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  const r = await installPrompt.userChoice;
+  if (r.outcome === "accepted") $("#installBtn").hidden = true;
+  installPrompt = null;
+};
+addEventListener("appinstalled", () => { $("#installBtn").hidden = true; toast("✓ Quraşdırıldı", "investWEB proqramlar siyahısına əlavə olundu."); });
 </script>
 </body>
 </html>
