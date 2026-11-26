@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bazar Xəritəsi">
+<title>Bazar Xəritəsi</title>
+<style>
+  :root {
+    --bg: #111318; --panel: #1a1d24; --panel2: #1f232c; --line: #2d323d;
+    --fg: #e8e8e8; --muted: #8b93a1; --accent: #2f6feb; --up: #4ade80; --down: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  html, body { background: var(--bg); color: var(--fg); font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 14px; }
+  body { min-height: 100dvh; display: flex; flex-direction: column; padding: env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0); }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  h1 { font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .tabs button { background: none; border: 0; padding: 7px 12px; color: #bbb; white-space: nowrap; }
+  .tabs button.on { background: var(--accent); color: #fff; }
+  .search { position: relative; flex: 1 1 180px; max-width: 280px; }
+  .search input { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px 7px 30px; }
+  .search::before { content: "⌕"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
+  .ctl { display: flex; gap: 6px; align-items: center; }
+  select { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  #status { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  .movers { display: flex; gap: 6px; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: none; }
+  .movers::-webkit-scrollbar { display: none; }
+  .movers .lbl { font-size: 11px; color: var(--muted); align-self: center; white-space: nowrap; padding-right: 2px; }
+  .chip { flex: none; border: 0; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; }
+  .hint { margin: 8px 12px 0; font-size: 12px; color: var(--muted); }
+  .hint a { color: #58a6ff; cursor: pointer; }
+
+  #map { position: relative; margin: 8px 12px 12px; overflow: hidden; border-radius: 6px; }
+  .sector { position: absolute; border: 1px solid var(--bg); }
+  .sector-title { position: absolute; left: 0; top: 0; right: 0; height: 16px; font-size: 10px; font-weight: 600; letter-spacing: .5px; color: #cfd3da; padding: 2px 4px; background: var(--panel); white-space: nowrap; overflow: hidden; }
+  .tile { position: absolute; border: 1px solid var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; transition: opacity .15s, filter .15s; text-shadow: 0 1px 2px rgba(0,0,0,.45); cursor: pointer; color: #fff; }
+  .tile:hover { filter: brightness(1.2); z-index: 2; outline: 2px solid #fff; }
+  .tile b { font-weight: 700; line-height: 1.05; }
+  .tile i { font-style: normal; line-height: 1.15; }
+  .tile.dim { opacity: .18; }
+  .tile.hit { outline: 3px solid #ffd33d; z-index: 3; }
+  .tile.nodata::after { content: "demo"; position: absolute; right: 2px; bottom: 1px; font-size: 8px; opacity: .6; }
+
+  #tip { position: fixed; pointer-events: none; background: var(--panel2); border: 1px solid #3a404d; border-radius: 6px; padding: 8px 10px; font-size: 13px; display: none; z-index: 20; min-width: 170px; box-shadow: 0 6px 20px rgba(0,0,0,.5); }
+  .row { display: flex; justify-content: space-between; gap: 14px; color: #aab; padding: 1px 0; }
+  .row b { color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Detal paneli (telefonda alt panel) */
+  #sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 110%); width: min(440px, 100%); background: var(--panel2); border: 1px solid var(--line); border-bottom: 0; border-radius: 14px 14px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom,0)); z-index: 30; transition: transform .2s; box-shadow: 0 -8px 30px rgba(0,0,0,.5); }
+  #sheet.open { transform: translate(-50%, 0); }
+  #sheet h2 { font-size: 20px; display: flex; align-items: baseline; gap: 8px; }
+  #sheet h2 small { font-size: 13px; color: var(--muted); font-weight: 400; }
+  #sheet .close { position: absolute; right: 10px; top: 8px; background: none; border: 0; font-size: 22px; color: var(--muted); padding: 4px 8px; }
+  #sheet .big { font-size: 26px; font-weight: 700; margin: 6px 0 8px; font-variant-numeric: tabular-nums; }
+  #sheet svg { width: 100%; height: 70px; display: block; margin: 6px 0 10px; }
+  .btns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; text-decoration: none; color: var(--fg); display: inline-block; }
+  .btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.red { color: var(--down); }
+  .btn.green { background: #238636; border-color: #238636; color: #fff; }
+
+  /* Təqvim və siyahı səhifələri */
+  .page { padding: 12px; display: grid; gap: 12px; max-width: 1100px; width: 100%; margin: 0 auto; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+  .card h2 { font-size: 15px; margin-bottom: 10px; }
+  .card p.note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .form { display: flex; gap: 6px; flex-wrap: wrap; }
+  .form input { flex: 1 1 120px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  .msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
+  .list { margin-top: 10px; max-height: 420px; overflow-y: auto; border-top: 1px solid var(--line); }
+  .li { display: flex; align-items: center; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); }
+  .li .t { font-weight: 700; min-width: 64px; }
+  .li .s { color: var(--muted); font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .li button { background: none; border: 0; color: var(--down); font-size: 18px; padding: 0 6px; }
+  .day { margin-top: 12px; }
+  .day h3 { font-size: 13px; color: var(--muted); margin-bottom: 4px; text-transform: capitalize; }
+  .ev { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .ev .t { font-weight: 700; min-width: 60px; }
+  .ev .s { color: var(--muted); flex: 1; }
+  .ev .tag { font-size: 11px; background: var(--panel2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; color: #aab; white-space: nowrap; }
+  .empty { color: var(--muted); padding: 14px 0; }
+
+  @media (max-width: 700px) {
+    header { gap: 8px; }
+    h1 { font-size: 15px; }
+    .search { order: 5; max-width: none; flex-basis: 100%; }
+    #status { flex-basis: 100%; margin-left: 0; order: 6; }
+    .cols { grid-template-columns: 1fr; }
+    #map { margin: 8px 6px 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 Bazar Xəritəsi</h1>
+  <div class="tabs" id="tabs">
+    <button data-view="stocks" class="on">Səhmlər</button><button data-view="crypto">Kripto</button><button data-view="calendar">Təqvim</button><button data-view="list">Siyahım</button>
+  </div>
+  <div class="search" id="searchBox"><input id="q" type="search" placeholder="Axtar: AAPL, BTC…" autocomplete="off"></div>
+  <div class="ctl" id="mapCtl">
+    <select id="period" title="Dövr">
+      <option value="1h">1 saat</option><option value="24h" selected>24 saat</option><option value="7d">7 gün</option><option value="30d">30 gün</option>
+    </select>
+    <select id="size" title="Ölçü">
+      <option value="cap">Ölçü: bazar dəyəri</option><option value="equal">Ölçü: bərabər</option>
+    </select>
+  </div>
+  <div id="status"></div>
+</header>
+
+<section id="mapView">
+  <div class="movers" id="movers"></div>
+  <div class="hint" id="hint"></div>
+  <div id="map"></div>
+</section>
+
+<section id="calView" class="page" hidden>
+  <div class="card">
+    <h2>📅 Hesabat (earnings) təqvimi</h2>
+    <div class="form">
+      <select id="calRange"><option value="7">Növbəti 7 gün</option><option value="14" selected>Növbəti 14 gün</option><option value="30">Növbəti 30 gün</option></select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="calMine" checked> Yalnız siyahımdakılar</label>
+    </div>
+    <div id="calEarn"></div>
+  </div>
+  <div class="card">
+    <h2>🚀 IPO təqvimi (yeni şirkətlər birjaya çıxır)</h2>
+    <div id="calIpo"></div>
+  </div>
+</section>
+
+<section id="listView" class="page" hidden>
+  <div class="cols">
+    <div class="card">
+      <h2>Səhmlərim (<span id="stockCount">0</span>)</h2>
+      <form class="form" id="addStock">
+        <input id="stockIn" placeholder="Ticker, məs. NFLX" autocomplete="off" autocapitalize="characters">
+        <select id="stockSector"></select>
+        <button class="btn green">Əlavə et</button>
+      </form>
+      <div class="msg" id="stockMsg"></div>
+      <div class="list" id="stockList"></div>
+      <div class="btns"><button class="btn red" id="resetStocks">Standart siyahını qaytar</button></div>
+    </div>
+    <div class="card">
+      <h2>Kriptolarım (<span id="cryptoCount">0</span>)</h2>
+      <form class="form" id="addCrypto">
+        <input id="cryptoIn" placeholder="Ad və ya simvol, məs. PEPE" autocomplete="off">
+        <button class="btn green">Əlavə et</button>
+      </form>
+      <div class="msg" id="cryptoMsg"></div>
+      <div class="list" id="cryptoList"></div>
+      <div class="btns"><button class="btn red" id="resetCrypto">Standart siyahını qaytar</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>🔑 Finnhub API açarı (canlı səhm qiymətləri və təqvim üçün)</h2>
+    <form class="form" id="keyForm">
+      <input id="keyInput" type="password" placeholder="Açarı bura yapışdırın" autocomplete="off">
+      <button class="btn green">Yadda saxla</button>
+      <button type="button" class="btn red" id="keyDel">Sil</button>
+    </form>
+    <div class="msg" id="keyMsg"></div>
+    <p class="note">Açar yalnız bu brauzerdə saxlanılır. Pulsuz açar: <a href="https://finnhub.io/register" target="_blank" rel="noopener" style="color:#58a6ff">finnhub.io/register</a>. Kripto üçün açar lazım deyil.</p>
+  </div>
+</section>
+
+<div id="tip"></div>
+<div id="sheet" role="dialog" aria-modal="false"><button class="close" id="sheetClose" aria-label="Bağla">×</button><div id="sheetBody"></div></div>
+
+<script>
+// =================== Köməkçilər ===================
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const getKey = () => { try { return localStorage.getItem("finnhubKey") || ""; } catch { return ""; } };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pct = p => (p > 0 ? "+" : "") + (p ?? 0).toFixed(2) + "%";
+const fmtCap = b => b >= 1000 ? `$${(b / 1000).toFixed(2)} trln` : b >= 1 ? `$${b.toFixed(1)} mlrd` : `$${(b * 1000).toFixed(0)} mln`;
+const fmtPrice = p => p == null ? "—" : p >= 1 ? "$" + p.toLocaleString("en-US", { maximumFractionDigits: 2 }) : "$" + p.toPrecision(4);
+const ymd = d => d.toISOString().slice(0, 10);
+
+// =================== Standart siyahılar ===================
+const DEFAULT_STOCKS = Object.entries({
+  "TEXNOLOGİYA": [["AAPL",3900,-1.90],["NVDA",4300,2.29],["MSFT",3700,2.74],["AVGO",1600,3.07],["AMD",380,3.65],["MU",220,2.58],["ORCL",700,5.85],["INTC",180,0.97],["AMAT",190,1.97],["LRCX",170,1.39],["PANW",130,-0.43],["TXN",170,3.47],["ANET",170,3.52],["IBM",270,-0.98],["CRWD",120,1.19],["DELL",95,3.98],["APH",160,5.45],["PLTR",420,-1.65],["CSCO",290,1.34],["QCOM",180,1.45],["CRM",240,-1.76],["ACN",160,-2.45],["ADBE",150,-2.12],["INTU",180,-2.10],["NOW",190,2.97],["ADI",120,1.68],["KLAC",120,2.02]],
+  "MALİYYƏ": [["BRK-B",1050,0.17],["JPM",820,-0.76],["V",660,-1.20],["MA",520,-1.66],["BAC",380,0.18],["MS",240,0.19],["GS",250,-0.29],["WFC",270,-0.42],["BLK",170,-0.50],["SCHW",170,0.64],["AXP",230,-0.76],["C",180,-0.32],["BX",190,-1.62],["SPGI",160,-1.92],["PGR",150,-2.06],["COF",140,-0.98],["HOOD",100,2.19]],
+  "SƏNAYE": [["GE",300,1.55],["CAT",260,1.68],["RTX",230,0.51],["GEV",180,6.49],["DE",130,-0.27],["UNP",140,-1.16],["UBER",190,-0.16],["ETN",140,7.00],["BA",160,-1.19],["LMT",110,-0.65],["HWM",80,4.76],["PWR",65,5.77]],
+  "İSTEHLAK (SİKLİK)": [["AMZN",2400,2.06],["TSLA",1400,-1.32],["HD",380,-2.20],["MCD",220,-0.98],["TJX",160,-2.39],["LOW",140,-2.19],["SBUX",100,0.35],["BKNG",170,1.25],["ABNB",80,-2.43],["NKE",100,-1.10]],
+  "İSTEHLAK (ƏSAS)": [["WMT",820,-2.22],["COST",420,-2.05],["KO",300,-1.07],["PG",360,-0.92],["PM",250,-0.12],["PEP",200,-2.24]],
+  "KOMMUNİKASİYA": [["GOOGL",3100,1.10],["META",1800,0.85],["NFLX",420,-0.60],["DIS",200,-0.40],["T",190,0.20]],
+  "SƏHİYYƏ": [["LLY",800,0.90],["UNH",300,-1.30],["JNJ",420,0.30],["ABBV",380,-0.70],["MRK",240,0.50]],
+  "ENERJİ": [["XOM",480,-0.80],["CVX",300,-0.60],["COP",120,-1.10]]
+}).flatMap(([sec, list]) => list.map(([t, cap, chg]) => [t, sec, cap, chg]));
+
+const DEFAULT_CRYPTO = ["bitcoin","ethereum","tether","ripple","binancecoin","solana","usd-coin","tron","dogecoin","cardano","hyperliquid","chainlink","bitcoin-cash","stellar","sui","avalanche-2","litecoin","hedera-hashgraph","shiba-inu","the-open-network","polkadot","monero","uniswap","aave","pepe","near","aptos","internet-computer","ethereum-classic","cosmos","arbitrum","optimism","filecoin","render-token","kaspa","algorand","vechain","injective-protocol","bittensor","ondo-finance"];
+
+const SECTOR_MAP = { technology: "TEXNOLOGİYA", semiconductors: "TEXNOLOGİYA", software: "TEXNOLOGİYA", banking: "MALİYYƏ", "financial services": "MALİYYƏ", insurance: "MALİYYƏ", retail: "İSTEHLAK (SİKLİK)", automobiles: "İSTEHLAK (SİKLİK)", "hotels, restaurants & leisure": "İSTEHLAK (SİKLİK)", media: "KOMMUNİKASİYA", telecommunication: "KOMMUNİKASİYA", pharmaceuticals: "SƏHİYYƏ", biotechnology: "SƏHİYYƏ", "health care": "SƏHİYYƏ", energy: "ENERJİ", "oil & gas": "ENERJİ", "aerospace & defense": "SƏNAYE", machinery: "SƏNAYE" };
+
+// =================== Vəziyyət ===================
+let stockList = store.get("stockList", null) || DEFAULT_STOCKS.map(x => [...x]);
+let cryptoList = store.get("cryptoList", null) || DEFAULT_CRYPTO.map(id => ({ id }));
+const prefs = Object.assign({ period: "24h", size: "cap" }, store.get("prefs", {}));
+let view = "stocks", query = "", currentItems = [];
+let cryptoData = null, cryptoErr = "";
+const live = {};               // ticker -> {chg, price, high, low, open, prev}
+let stockMsg = "", stockRun = 0;
+
+$("#period").value = prefs.period; $("#size").value = prefs.size;
+
+// =================== Rəng ===================
+function color(p, scale) {
+  const t = Math.max(-1, Math.min(1, (p || 0) / scale));
+  const grey = [65, 69, 84], red = [246, 53, 56], green = [48, 204, 90];
+  const target = t < 0 ? red : green, k = Math.abs(t);
+  return `rgb(${grey.map((g, i) => Math.round(g + (target[i] - g) * k))})`;
+}
+const colorScale = () => view === "crypto" ? ({ "1h": 1.5, "24h": 5, "7d": 12, "30d": 25 }[prefs.period]) : 3;
+
+// =================== Squarified treemap ===================
+function worst(row, s) {
+  const sum = row.reduce((a, i) => a + i.a, 0);
+  const mx = Math.max(...row.map(i => i.a)), mn = Math.min(...row.map(i => i.a));
+  return Math.max(s * s * mx / (sum * sum), (sum * sum) / (s * s * mn));
+}
+function squarify(items, x, y, w, h) {
+  const total = items.reduce((s, i) => s + i.v, 0);
+  if (!total || w <= 0 || h <= 0) return [];
+  const scale = (w * h) / total;
+  let rest = [...items].sort((a, b) => b.v - a.v).map(i => ({ ...i, a: i.v * scale }));
+  const out = [];
+  while (rest.length) {
+    const side = Math.min(w, h);
+    let row = [rest[0]], best = worst(row, side), k = 1;
+    while (k < rest.length) {
+      const next = [...row, rest[k]], wv = worst(next, side);
+      if (wv > best) break;
+      row = next; best = wv; k++;
+    }
+    rest = rest.slice(k);
+    const sum = row.reduce((s, i) => s + i.a, 0);
+    if (w >= h) { const cw = sum / h; let cy = y; row.forEach(i => { const ch = i.a / cw; out.push({ ...i, x, y: cy, w: cw, h: ch }); cy += ch; }); x += cw; w -= cw; }
+    else { const rh = sum / w; let cx = x; row.forEach(i => { const cw = i.a / rh; out.push({ ...i, x: cx, y, w: cw, h: rh }); cx += cw; }); y += rh; h -= rh; }
+  }
+  return out;
+}
+
+// =================== Elementlər ===================
+function stockItems() {
+  return stockList.map(([t, sector, cap, demo]) => {
+    const l = live[t];
+    return { id: t, name: t, kind: "stock", sector, cap, v: prefs.size === "equal" ? 1 : cap,
+      chg: l ? l.chg : (demo ?? 0), price: l?.price, high: l?.high, low: l?.low, prev: l?.prev, nodata: !l };
+  });
+}
+function cryptoItems() {
+  if (!cryptoData) return [];
+  const f = { "1h": "price_change_percentage_1h_in_currency", "24h": "price_change_percentage_24h_in_currency", "7d": "price_change_percentage_7d_in_currency", "30d": "price_change_percentage_30d_in_currency" }[prefs.period];
+  return cryptoData.map(c => ({ id: c.id, name: c.symbol.toUpperCase(), full: c.name, kind: "crypto", cap: c.market_cap / 1e9,
+    v: prefs.size === "equal" ? 1 : Math.max(c.market_cap / 1e9, 0.01), chg: c[f] ?? 0, price: c.current_price,
+    high: c.high_24h, low: c.low_24h, spark: c.sparkline_in_7d?.price, rank: c.market_cap_rank,
+    c24: c.price_change_percentage_24h_in_currency, c7: c.price_change_percentage_7d_in_currency, c30: c.price_change_percentage_30d_in_currency }));
+}
+
+// =================== Xəritə ===================
+const map = $("#map"), tip = $("#tip");
+const fine = matchMedia("(pointer: fine)").matches;
+
+function tile(parent, r, scale) {
+  const d = document.createElement("div");
+  d.className = "tile" + (r.nodata && r.kind === "stock" ? " nodata" : "");
+  d.dataset.name = r.name.toLowerCase(); d.dataset.full = (r.full || "").toLowerCase();
+  Object.assign(d.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px", background: color(r.chg, scale) });
+  const fs = Math.max(8, Math.min(36, Math.sqrt(r.w * r.h) / 4.2));
+  if (r.w > 20 && r.h > 13) {
+    const b = document.createElement("b"); b.style.fontSize = fs + "px"; b.textContent = r.name; d.appendChild(b);
+    if (r.h > fs * 2.1) { const i = document.createElement("i"); i.style.fontSize = fs * 0.62 + "px"; i.textContent = pct(r.chg); d.appendChild(i); }
+  }
+  if (fine) { d.onmousemove = e => showTip(e, r); d.onmouseleave = () => (tip.style.display = "none"); }
+  d.onclick = () => { tip.style.display = "none"; openDetail(r); };
+  parent.appendChild(d);
+}
+
+function showTip(e, r) {
+  tip.innerHTML = `<div style="font-size:15px;font-weight:700;margin-bottom:4px">${esc(r.name)} <span style="color:#8b93a1;font-weight:400;font-size:12px">${esc(r.full || r.sector || "")}</span></div>` +
+    `<div class="row">Qiymət <b>${fmtPrice(r.price)}</b></div>` +
+    `<div class="row">Dəyişmə <b style="color:${r.chg >= 0 ? "var(--up)" : "var(--down)"}">${pct(r.chg)}</b></div>` +
+    `<div class="row">Bazar dəyəri <b>${fmtCap(r.cap)}</b></div>` +
+    (r.nodata && r.kind === "stock" ? `<div class="row" style="color:#d29922">Demo data (canlı deyil)</div>` : "");
+  tip.style.display = "block";
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px";
+  tip.style.top = Math.min(e.clientY + 14, innerHeight - tip.offsetHeight - 8) + "px";
+}
+
+function renderMap() {
+  map.innerHTML = "";
+  const W = map.clientWidth;
+  const top = map.getBoundingClientRect().top + scrollY;
+  const H = Math.max(innerHeight - top - 12, W < 700 ? W * 1.55 : 420);
+  map.style.height = H + "px";
+  const scale = colorScale();
+  if (view === "stocks") {
+    currentItems = stockItems();
+    const groups = {};
+    currentItems.forEach(i => (groups[i.sector] ||= []).push(i));
+    const sectors = Object.entries(groups).map(([name, items]) => ({ name, items, v: items.reduce((s, i) => s + i.v, 0) }));
+    squarify(sectors, 0, 0, W, H).forEach(s => {
+      const box = document.createElement("div");
+      box.className = "sector";
+      Object.assign(box.style, { left: s.x + "px", top: s.y + "px", width: s.w + "px", height: s.h + "px" });
+      const t = document.createElement("div"); t.className = "sector-title"; t.textContent = s.name; box.appendChild(t);
+      map.appendChild(box);
+      squarify(s.items, 0, 16, s.w - 2, s.h - 18).forEach(r => tile(box, r, scale));
+    });
+  } else {
+    currentItems = cryptoItems();
+    if (!cryptoData) { map.innerHTML = `<p style="padding:20px;color:#8b93a1">${cryptoErr || "Yüklənir…"}</p>`; }
+    squarify(currentItems, 0, 0, W, H).forEach(r => tile(map, r, scale));
+  }
+  renderMovers(); applySearch();
+}
+
+function renderMovers() {
+  const m = $("#movers"); m.innerHTML = "";
+  if (!currentItems.length) return;
+  const sorted = [...currentItems].sort((a, b) => b.chg - a.chg);
+  const add = (lbl, arr) => {
+    const s = document.createElement("span"); s.className = "lbl"; s.textContent = lbl; m.appendChild(s);
+    arr.forEach(r => { const c = document.createElement("button"); c.className = "chip"; c.style.background = color(r.chg, colorScale()); c.textContent = `${r.name} ${pct(r.chg)}`; c.onclick = () => openDetail(r); m.appendChild(c); });
+  };
+  add("▲ Ən çox artan", sorted.slice(0, 5));
+  add("▼ Ən çox düşən", sorted.slice(-5).reverse());
+}
+
+function applySearch() {
+  const q = query.trim().toLowerCase();
+  map.querySelectorAll(".tile").forEach(t => {
+    const hit = q && (t.dataset.name.startsWith(q) || (q.length > 2 && t.dataset.full.includes(q)));
+    t.classList.toggle("dim", !!q && !hit);
+    t.classList.toggle("hit", !!hit);
+  });
+  updateHint();
+}
+
+function updateHint() {
+  const h = $("#hint"), q = query.trim();
+  h.innerHTML = "";
+  if (q && (view === "stocks" || view === "crypto")) {
+    const found = currentItems.some(i => i.name.toLowerCase().startsWith(q.toLowerCase()) || (i.full || "").toLowerCase().includes(q.toLowerCase()));
+    if (!found) {
+      h.append(`"${q}" siyahıda yoxdur. `);
+      const a = document.createElement("a"); a.textContent = "Siyahıya əlavə et →";
+      a.onclick = () => { if (view === "stocks") { $("#stockIn").value = q.toUpperCase(); switchView("list"); addStock(); } else { $("#cryptoIn").value = q; switchView("list"); addCrypto(); } };
+      h.appendChild(a);
+    }
+    return;
+  }
+  if (view === "stocks" && !getKey()) {
+    h.append("Səhm faizləri demo datadır. Canlı qiymətlər üçün ");
+    const a = document.createElement("a"); a.textContent = "Siyahım → Finnhub açarı"; a.onclick = () => switchView("list"); h.appendChild(a);
+  }
+}
+
+// =================== Detal paneli ===================
+function sparkSVG(arr, up) {
+  if (!arr || arr.length < 2) return "";
+  const mn = Math.min(...arr), mx = Math.max(...arr), n = arr.length;
+  const pts = arr.map((v, i) => `${(i / (n - 1) * 300).toFixed(1)},${(66 - (v - mn) / (mx - mn || 1) * 60).toFixed(1)}`).join(" ");
+  const c = up ? "#4ade80" : "#f87171";
+  return `<svg viewBox="0 0 300 70" preserveAspectRatio="none"><polygon points="0,70 ${pts} 300,70" fill="${c}" opacity=".12"/><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><div style="font-size:11px;color:#8b93a1;margin-top:-6px">Son 7 gün</div>`;
+}
+
+function openDetail(r) {
+  const tv = r.kind === "stock" ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(r.name.replace("-", "."))}` : `https://www.tradingview.com/chart/?symbol=${encodeURIComponent("BINANCE:" + r.name + "USDT")}`;
+  const col = r.chg >= 0 ? "var(--up)" : "var(--down)";
+  let rows = `<div class="row">Bazar dəyəri <b>${fmtCap(r.cap)}</b></div>`;
+  if (r.high != null) rows += `<div class="row">Gün ərzində (aşağı – yuxarı) <b>${fmtPrice(r.low)} – ${fmtPrice(r.high)}</b></div>`;
+  if (r.prev != null) rows += `<div class="row">Əvvəlki bağlanış <b>${fmtPrice(r.prev)}</b></div>`;
+  if (r.kind === "crypto") rows += `<div class="row">24 saat / 7 gün / 30 gün <b><span style="color:${(r.c24||0)>=0?"var(--up)":"var(--down)"}">${pct(r.c24)}</span> · <span style="color:${(r.c7||0)>=0?"var(--up)":"var(--down)"}">${pct(r.c7)}</span> · <span style="color:${(r.c30||0)>=0?"var(--up)":"var(--down)"}">${pct(r.c30)}</span></b></div>` + (r.rank ? `<div class="row">Reytinq <b>#${r.rank}</b></div>` : "");
+  else rows += `<div class="row">Sektor <b>${esc(r.sector)}</b></div>`;
+  $("#sheetBody").innerHTML =
+    `<h2>${esc(r.name)} <small>${esc(r.full || "")}</small></h2>` +
+    `<div class="big">${fmtPrice(r.price)} <span style="font-size:17px;color:${col}">${pct(r.chg)}</span></div>` +
+    (r.nodata && r.kind === "stock" ? `<div style="color:#d29922;font-size:12px;margin-bottom:6px">Demo data. Canlı qiymət üçün Finnhub açarı əlavə edin.</div>` : "") +
+    (r.kind === "crypto" ? sparkSVG(r.spark, (r.spark?.at(-1) ?? 0) >= (r.spark?.[0] ?? 0)) : "") +
+    rows +
+    `<div class="btns"><a class="btn pri" href="${tv}" target="_blank" rel="noopener">📈 Qrafik (TradingView)</a><button class="btn red" id="rmBtn">Siyahıdan çıxar</button></div>`;
+  $("#rmBtn").onclick = () => { r.kind === "stock" ? removeStock(r.id) : removeCrypto(r.id); closeSheet(); };
+  $("#sheet").classList.add("open");
+}
+function closeSheet() { $("#sheet").classList.remove("open"); }
+$("#sheetClose").onclick = closeSheet;
+addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+// =================== Kripto datası (CoinGecko) ===================
+async function loadCrypto() {
+  if (!cryptoList.length) { cryptoData = []; cryptoErr = "Kripto siyahınız boşdur. Siyahım bölməsindən əlavə edin."; if (view === "crypto") renderMap(); return; }
+  try {
+    const ids = cryptoList.map(c => c.id).join(",");
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids)}&order=market_cap_desc&per_page=250&sparkline=true&price_change_percentage=1h,24h,7d,30d`);
+    if (!res.ok) throw new Error(res.status === 429 ? "çox sorğu, bir az gözləyin" : "xəta " + res.status);
+    cryptoData = (await res.json()).filter(c => c.market_cap);
+    cryptoErr = "";
+    cryptoList.forEach(c => { const d = cryptoData.find(x => x.id === c.id); if (d) { c.sym = d.symbol.toUpperCase(); c.name = d.name; } });
+    store.set("cryptoList", cryptoList);
+  } catch (e) { cryptoErr = "Kripto datası yüklənmədi (" + e.message + "). 60 san. sonra yenidən."; }
+  setStatus();
+  if (view === "crypto") renderMap();
+  if (view === "list") renderLists();
+}
+
+// =================== Səhm datası (Finnhub) ===================
+async function finnhub(path) {
+  const res = await fetch(`https://finnhub.io/api/v1/${path}${path.includes("?") ? "&" : "?"}token=${encodeURIComponent(getKey())}`);
+  if (res.status === 401 || res.status === 403) throw Object.assign(new Error("Açar qəbul olunmadı"), { code: "auth" });
+  if (res.status === 429) throw Object.assign(new Error("Limit doldu"), { code: "limit" });
+  if (!res.ok) throw new Error("xəta " + res.status);
+  return res.json();
+}
+
+async function loadStocks() {
+  const run = ++stockRun;
+  if (!getKey()) { stockMsg = "Səhmlər: demo data"; setStatus(); return; }
+  while (run === stockRun) {
+    const tickers = stockList.map(x => x[0]);
+    let ok = 0;
+    for (let i = 0; i < tickers.length && run === stockRun; i++) {
+      const t = tickers[i];
+      try {
+        const q = await finnhub(`quote?symbol=${encodeURIComponent(t.replace("-", "."))}`);
+        if (q && q.c) { live[t] = { price: q.c, chg: q.dp || 0, high: q.h, low: q.l, prev: q.pc }; ok++; }
+      } catch (e) {
+        if (e.code === "auth") { stockMsg = "Finnhub açarı qəbul olunmadı. Siyahım bölməsində yoxlayın."; setStatus(); return; }
+        if (e.code === "limit") { stockMsg = "Limit doldu, gözlənilir…"; setStatus(); await sleep(15000); i--; continue; }
+      }
+      stockMsg = `Canlı (Finnhub): ${i + 1}/${tickers.length}`;
+      if (view === "stocks") { setStatus(); if ((i + 1) % 10 === 0 || i === tickers.length - 1) renderMap(); }
+      await sleep(1100);   // pulsuz plan: dəqiqədə 60 sorğu
+    }
+    stockMsg = `Canlı (Finnhub) · ${ok} səhm · ${new Date().toLocaleTimeString("az")}`;
+    if (view === "stocks") { setStatus(); renderMap(); }
+  }
+}
+
+// =================== Siyahı idarəsi ===================
+function saveStocks() { store.set("stockList", stockList); }
+function saveCrypto() { store.set("cryptoList", cryptoList); }
+function removeStock(t) { stockList = stockList.filter(x => x[0] !== t); delete live[t]; saveStocks(); refreshAll(); }
+function removeCrypto(id) { cryptoList = cryptoList.filter(c => c.id !== id); if (cryptoData) cryptoData = cryptoData.filter(c => c.id !== id); saveCrypto(); refreshAll(); }
+
+function fillSectorSelect() {
+  const secs = [...new Set([...DEFAULT_STOCKS.map(x => x[1]), ...stockList.map(x => x[1])])];
+  $("#stockSector").innerHTML = `<option value="">Sektor: avtomatik</option>` + secs.map(s => `<option>${esc(s)}</option>`).join("") + `<option>DİGƏR</option>`;
+}
+
+async function addStock() {
+  const msg = $("#stockMsg");
+  const t = $("#stockIn").value.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, "");
+  if (!t) return;
+  if (stockList.some(x => x[0] === t)) { msg.style.color = "#d29922"; msg.textContent = `${t} artıq siyahıdadır.`; return; }
+  let sector = $("#stockSector").value, cap = 50;
+  if (getKey()) {
+    msg.style.color = "var(--muted)"; msg.textContent = "Yoxlanılır…";
+    try {
+      const p = await finnhub(`stock/profile2?symbol=${encodeURIComponent(t.replace("-", "."))}`);
+      if (!p || !p.ticker) { msg.style.color = "var(--down)"; msg.textContent = `${t} tapılmadı. Ticker-i yoxlayın (yalnız ABŞ birjaları).`; return; }
+      cap = (p.marketCapitalization || 50000) / 1000;
+      if (!sector) { const ind = (p.finnhubIndustry || "").toLowerCase(); sector = SECTOR_MAP[ind] || (p.finnhubIndustry || "DİGƏR").toUpperCase(); }
+    } catch (e) { msg.style.color = "var(--down)"; msg.textContent = e.message; return; }
+  }
+  stockList.push([t, sector || "DİGƏR", cap, null]);
+  saveStocks();
+  $("#stockIn").value = "";
+  msg.style.color = "var(--up)"; msg.textContent = `${t} əlavə olundu.` + (getKey() ? "" : " (Açar olmadan qiymət görünməyəcək.)");
+  refreshAll();
+}
+
+async function addCrypto() {
+  const msg = $("#cryptoMsg"), q = $("#cryptoIn").value.trim();
+  if (!q) return;
+  msg.style.color = "var(--muted)"; msg.textContent = "Axtarılır…";
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
+    if (!res.ok) throw new Error("xəta " + res.status);
+    const coins = (await res.json()).coins || [];
+    const c = coins.find(x => x.symbol.toLowerCase() === q.toLowerCase()) || coins[0];
+    if (!c) { msg.style.color = "var(--down)"; msg.textContent = `"${q}" tapılmadı.`; return; }
+    if (cryptoList.some(x => x.id === c.id)) { msg.style.color = "#d29922"; msg.textContent = `${c.symbol} artıq siyahıdadır.`; return; }
+    cryptoList.push({ id: c.id, sym: c.symbol.toUpperCase(), name: c.name });
+    saveCrypto();
+    $("#cryptoIn").value = "";
+    msg.style.color = "var(--up)"; msg.textContent = `${c.name} (${c.symbol.toUpperCase()}) əlavə olundu.`;
+    renderLists(); loadCrypto();
+  } catch (e) { msg.style.color = "var(--down)"; msg.textContent = "Axtarış alınmadı: " + e.message; }
+}
+
+function renderLists() {
+  $("#stockCount").textContent = stockList.length;
+  $("#cryptoCount").textContent = cryptoList.length;
+  const sl = $("#stockList"); sl.innerHTML = "";
+  [...stockList].sort((a, b) => a[1].localeCompare(b[1]) || b[2] - a[2]).forEach(([t, sec]) => {
+    const row = document.createElement("div"); row.className = "li";
+    row.innerHTML = `<span class="t"></span><span class="s"></span><button aria-label="Çıxar">×</button>`;
+    row.querySelector(".t").textContent = t; row.querySelector(".s").textContent = sec;
+    row.querySelector("button").onclick = () => removeStock(t);
+    sl.appendChild(row);
+  });
+  const cl = $("#cryptoList"); cl.innerHTML = "";
+  cryptoList.forEach(c => {
+    const row = document.createElement("div"); row.className = "li";
+    row.innerHTML = `<span class="t"></span><span class="s"></span><button aria-label="Çıxar">×</button>`;
+    row.querySelector(".t").textContent = c.sym || c.id; row.querySelector(".s").textContent = c.name || c.id;
+    row.querySelector("button").onclick = () => removeCrypto(c.id);
+    cl.appendChild(row);
+  });
+  fillSectorSelect();
+  $("#keyMsg").textContent = getKey() ? "✓ Açar saxlanılıb." : "Açar yoxdur: səhmlər demo datadır.";
+  $("#keyMsg").style.color = getKey() ? "var(--up)" : "var(--muted)";
+}
+
+function twoStep(btn, label, action) {
+  btn.onclick = () => {
+    if (btn.dataset.armed) { action(); btn.textContent = label; delete btn.dataset.armed; return; }
+    btn.dataset.armed = 1; btn.textContent = "Əminsiniz? Yenidən basın";
+    setTimeout(() => { btn.textContent = label; delete btn.dataset.armed; }, 3000);
+  };
+}
+twoStep($("#resetStocks"), "Standart siyahını qaytar", () => { stockList = DEFAULT_STOCKS.map(x => [...x]); saveStocks(); refreshAll(); });
+twoStep($("#resetCrypto"), "Standart siyahını qaytar", () => { cryptoList = DEFAULT_CRYPTO.map(id => ({ id })); saveCrypto(); renderLists(); loadCrypto(); });
+
+$("#addStock").onsubmit = e => { e.preventDefault(); addStock(); };
+$("#addCrypto").onsubmit = e => { e.preventDefault(); addCrypto(); };
+$("#keyForm").onsubmit = e => {
+  e.preventDefault();
+  const v = $("#keyInput").value.trim(); if (!v) return;
+  try { localStorage.setItem("finnhubKey", v); } catch {}
+  $("#keyInput").value = ""; renderLists(); loadStocks();
+};
+$("#keyDel").onclick = () => { try { localStorage.removeItem("finnhubKey"); } catch {} Object.keys(live).forEach(k => delete live[k]); stockRun++; renderLists(); loadStocks(); };
+
+// =================== Təqvim ===================
+const HOURS = { bmo: "Açılışdan əvvəl", amc: "Bağlanışdan sonra", dmh: "Gün ərzində" };
+async function renderCalendar() {
+  const earn = $("#calEarn"), ipo = $("#calIpo");
+  if (!getKey()) {
+    const m = `<p class="empty">Təqvim üçün Finnhub açarı lazımdır. <a style="color:#58a6ff;cursor:pointer" onclick="switchView('list')">Siyahım → açar əlavə et</a></p>`;
+    earn.innerHTML = m; ipo.innerHTML = m; return;
+  }
+  earn.innerHTML = ipo.innerHTML = `<p class="empty">Yüklənir…</p>`;
+  const from = new Date(), to = new Date(Date.now() + +$("#calRange").value * 864e5);
+  const range = `from=${ymd(from)}&to=${ymd(to)}`;
+  const mine = new Set(stockList.map(x => x[0].replace("-", ".")));
+  const dayName = d => new Date(d + "T12:00:00").toLocaleDateString("az", { weekday: "long", day: "numeric", month: "long" });
+  try {
+    const e = await finnhub(`calendar/earnings?${range}`);
+    let rows = e.earningsCalendar || [];
+    if ($("#calMine").checked) rows = rows.filter(r => mine.has(r.symbol));
+    rows.sort((a, b) => a.date.localeCompare(b.date) || a.symbol.localeCompare(b.symbol));
+    if (!rows.length) earn.innerHTML = `<p class="empty">Bu dövrdə ${$("#calMine").checked ? "siyahınızdakı şirkətlərin " : ""}hesabatı yoxdur.</p>`;
+    else {
+      const byDay = {}; rows.slice(0, 400).forEach(r => (byDay[r.date] ||= []).push(r));
+      earn.innerHTML = Object.entries(byDay).map(([d, list]) => `<div class="day"><h3>${esc(dayName(d))}</h3>` + list.map(r =>
+        `<div class="ev"><span class="t">${esc(r.symbol)}</span><span class="s">Q${esc(r.quarter)} ${esc(r.year)}${r.epsEstimate != null ? ` · EPS proqnoz: ${(+r.epsEstimate).toFixed(2)}` : ""}${r.epsActual != null ? ` · faktiki: ${(+r.epsActual).toFixed(2)}` : ""}</span>${HOURS[r.hour] ? `<span class="tag">${HOURS[r.hour]}</span>` : ""}</div>`).join("") + `</div>`).join("");
+    }
+  } catch (err) { earn.innerHTML = `<p class="empty">Yüklənmədi: ${esc(err.message)}</p>`; }
+  try {
+    const i = await finnhub(`calendar/ipo?${range}`);
+    const rows = (i.ipoCalendar || []).sort((a, b) => a.date.localeCompare(b.date));
+    ipo.innerHTML = rows.length ? rows.map(r => `<div class="ev"><span class="t">${esc(r.symbol || "—")}</span><span class="s">${esc(r.name)} · ${esc(r.exchange || "")}${r.price ? ` · $${esc(r.price)}` : ""}</span><span class="tag">${esc(r.date)}</span></div>`).join("") : `<p class="empty">Bu dövrdə IPO yoxdur.</p>`;
+  } catch (err) { ipo.innerHTML = `<p class="empty">Yüklənmədi: ${esc(err.message)}</p>`; }
+}
+$("#calRange").onchange = renderCalendar;
+$("#calMine").onchange = renderCalendar;
+
+// =================== Görünüş ===================
+function setStatus() {
+  const s = $("#status");
+  s.textContent = view === "stocks" ? stockMsg : view === "crypto" ? (cryptoErr || (cryptoData ? `Canlı (CoinGecko) · ${cryptoData.length} koin · hər 60 san.` : "Yüklənir…")) : "";
+}
+
+function switchView(v) {
+  view = v;
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+  const isMap = v === "stocks" || v === "crypto";
+  $("#mapView").hidden = !isMap; $("#calView").hidden = v !== "calendar"; $("#listView").hidden = v !== "list";
+  $("#searchBox").hidden = !isMap;
+  $("#mapCtl").hidden = !isMap;
+  $("#period").hidden = v !== "crypto";
+  closeSheet(); setStatus();
+  if (isMap) renderMap();
+  if (v === "calendar") renderCalendar();
+  if (v === "list") renderLists();
+}
+
+function refreshAll() {
+  renderLists();
+  if (view === "stocks" || view === "crypto") renderMap();
+  loadStocks();
+}
+
+document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => switchView(b.dataset.view));
+$("#q").oninput = e => { query = e.target.value; applySearch(); };
+$("#q").onkeydown = e => {
+  if (e.key !== "Enter") return;
+  const q = query.trim().toLowerCase();
+  const hit = currentItems.find(i => i.name.toLowerCase() === q) || currentItems.find(i => i.name.toLowerCase().startsWith(q) || (i.full || "").toLowerCase().includes(q));
+  if (hit) openDetail(hit);
+};
+$("#period").onchange = e => { prefs.period = e.target.value; store.set("prefs", prefs); renderMap(); };
+$("#size").onchange = e => { prefs.size = e.target.value; store.set("prefs", prefs); renderMap(); };
+
+let rT; addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => { if (view === "stocks" || view === "crypto") renderMap(); }, 150); });
+
+// =================== Başlanğıc ===================
+switchView("stocks");
+loadStocks();
+loadCrypto(); setInterval(loadCrypto, 60000);
+</script>
+</body>
+</html>
