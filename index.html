@@ -74,7 +74,8 @@
   .tile.fu { animation: fu .9s ease-out; } .tile.fd { animation: fd .9s ease-out; }
   @keyframes fu { from { box-shadow: inset 0 0 0 3px #a7f3c0; } to { box-shadow: inset 0 0 0 3px transparent; } }
   @keyframes fd { from { box-shadow: inset 0 0 0 3px #fecaca; } to { box-shadow: inset 0 0 0 3px transparent; } }
-  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--up); margin-right: 5px; vertical-align: 1px; animation: pulse 2s infinite; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--up); margin-right: 5px; vertical-align: 1px; }
+  .dot.rt { animation: pulse 2s infinite; }
   .dot.off { background: var(--muted); animation: none; }
   @keyframes pulse { 50% { opacity: .35; } }
 
@@ -1325,16 +1326,16 @@ $("#calMine").onchange = renderCalendar;
 // =================== Görünüş ===================
 function setStatus() {
   const s = $("#status");
-  const dot = on => `<span class="dot${on ? "" : " off"}"></span>`;
+  const dot = (on, rt) => `<span class="dot${on ? "" : " off"}${rt ? " rt" : ""}"></span>`;
   if (view === "stocks") {
     if (!getKey()) { s.innerHTML = `${dot(false)}Səhmlər: demo (açar yoxdur)`; return; }
     if (stockMsg) { s.textContent = stockMsg; return; }
     const ws = fwsLive && Date.now() - fwsLive < 120000;
-    s.innerHTML = `${dot(true)}Canlı${ws ? " · real vaxt" : ""} · ${Object.keys(live).length}/${stockTotal || L.stocks.length} səhm yükləndi` + (ws ? "" : `<span style="opacity:.7"> · bazar bağlıdırsa son qiymətlər</span>`);
+    s.innerHTML = `${dot(true, ws)}Canlı${ws ? " · real vaxt" : ""} · ${Object.keys(live).length}/${stockTotal || L.stocks.length} səhm yükləndi` + (ws ? "" : `<span style="opacity:.7"> · bazar bağlıdırsa son qiymətlər</span>`);
   } else if (view === "crypto") {
     if (cryptoErr) { s.textContent = cryptoErr; return; }
     if (!cryptoLoaded) { s.textContent = "Yüklənir…"; return; }
-    s.innerHTML = bwsLive ? `${dot(true)}Real vaxt (Binance) · ${cryptoItems().length} kripto` : `${dot(true)}Canlı (CoinGecko, hər 60 san.) · ${cryptoItems().length} kripto`;
+    s.innerHTML = bwsLive ? `${dot(true, true)}Real vaxt (Binance) · ${cryptoItems().length} kripto` : `${dot(true)}Canlı (CoinGecko, hər 60 san.) · ${cryptoItems().length} kripto`;
   } else s.textContent = "";
 }
 function switchView(v) {
