@@ -196,7 +196,7 @@
   </select>
   <select id="cur" title="Valyuta"><option value="USD">$ USD</option><option value="AZN">₼ AZN</option><option value="EUR">€ EUR</option></select>
   <button class="iconbtn" id="themeBtn" title="Tema dəyiş" aria-label="Tema dəyiş">☀</button>
-  <button class="btn green" id="installBtn" style="padding:5px 10px" hidden>⬇ Telefona quraşdır</button>
+  <button class="btn green" id="installBtn" style="padding:5px 10px" hidden>⬇ Quraşdır</button>
   <div id="status"></div>
 </div>
 
@@ -1490,17 +1490,50 @@ setInterval(setStatus, 5000);
 // =================== Telefona quraşdırma (PWA) ===================
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 let installPrompt = null;
-addEventListener("beforeinstallprompt", e => {
-  e.preventDefault(); installPrompt = e;
-  const b = $("#installBtn"); b.hidden = false;
-});
+const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+// Proqram kimi açılıbsa düymə lazım deyil; əks halda həmişə göstər
+$("#installBtn").hidden = isStandalone;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; });
 $("#installBtn").onclick = async () => {
-  if (!installPrompt) return;
-  installPrompt.prompt();
-  const r = await installPrompt.userChoice;
-  if (r.outcome === "accepted") $("#installBtn").hidden = true;
-  installPrompt = null;
+  if (installPrompt) {
+    installPrompt.prompt();
+    const r = await installPrompt.userChoice;
+    if (r.outcome === "accepted") $("#installBtn").hidden = true;
+    installPrompt = null;
+    return;
+  }
+  showInstallHelp();
 };
+// Brauzer avtomatik quraşdırma pəncərəsi verməyəndə: addım-addım təlimat
+function showInstallHelp() {
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/i.test(ua);
+  const inApp = /FBAN|FBAV|Instagram|WhatsApp|Telegram|Line\/|; wv\)|GSA\//i.test(ua);
+  const samsung = /SamsungBrowser/i.test(ua);
+  let steps;
+  if (inApp) steps = [
+    "Bu səhifə başqa proqramın (WhatsApp, Telegram, Instagram və s.) içində açılıb. Oradan quraşdırmaq olmur.",
+    "Sağ yuxarıdakı <b>⋮</b> və ya <b>…</b> menyusuna basın və <b>“Chrome-da aç”</b> (və ya “Brauzerdə aç”) seçin.",
+    "Chrome-da açılanda bu düyməyə yenidən basın."];
+  else if (ios) steps = [
+    "Aşağıdakı (Chrome-da yuxarıdakı) <b>Paylaş</b> düyməsinə basın: kvadratdan yuxarı çıxan ox <b>⬆</b>.",
+    "Siyahını aşağı sürüşdürüb <b>“Ana ekrana əlavə et”</b> (Add to Home Screen) seçin.",
+    "Sağ yuxarıda <b>“Əlavə et”</b> basın. investWEB ikonu ana ekranda görünəcək."];
+  else if (samsung) steps = [
+    "Aşağıdakı <b>☰</b> menyusuna basın.",
+    "<b>“Səhifəni əlavə et”</b> → <b>“Ana ekran”</b> seçin.",
+    "<b>“Əlavə et”</b> basın."];
+  else steps = [
+    "Chrome-un sağ yuxarı küncündəki <b>⋮</b> (üç nöqtə) menyusuna basın.",
+    "<b>“Tətbiqi quraşdır”</b> (Install app) seçin. Görünmürsə, <b>“Ana ekrana əlavə et”</b> (Add to Home screen) seçin.",
+    "Açılan pəncərədə <b>“Quraşdır”</b> (Install) basın.",
+    "Bir neçə saniyədən sonra investWEB proqramlar siyahısında öz ikonu ilə görünəcək."];
+  detailItem = null;
+  $("#sheetBody").innerHTML = `<div class="ttl">⬇ investWEB-i telefona quraşdır</div>
+    <ol class="steps" style="margin-top:12px">${steps.map(s => `<li style="margin-bottom:6px">${s}</li>`).join("")}</ol>
+    <p class="note">Əvvəllər ana ekrana link kimi əlavə etmisinizsə, köhnə ikonu silin və yenidən quraşdırın. Quraşdırma bir dəfəlikdir; sonrakı yeniləmələr avtomatik gəlir.</p>`;
+  $("#sheet").classList.add("open");
+}
 addEventListener("appinstalled", () => { $("#installBtn").hidden = true; toast("✓ Quraşdırıldı", "investWEB proqramlar siyahısına əlavə olundu."); });
 </script>
 </body>
