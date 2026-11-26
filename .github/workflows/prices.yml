@@ -1,0 +1,34 @@
+name: Səhm qiymətləri
+
+# Hər 5 dəqiqədən bir bütün səhmlərin qiymətini yeniləyir (GitHub-ın icazə verdiyi ən qısa aralıq).
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prices
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Qiymətləri çək
+        run: python3 .github/scripts/fetch_prices.py index.html stocks.json
+
+      - name: "data" budağına yaz (yalnız stocks.json, tarixçəsiz)
+        run: |
+          mkdir out && cp stocks.json out/ && cd out
+          git init -q -b data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stocks.json
+          git commit -q -m "Qiymətlər $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data

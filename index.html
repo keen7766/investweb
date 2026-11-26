@@ -391,10 +391,10 @@ async function loadRates() {
 // ~290 böyük ABŞ səhmi: TICKER:təxmini bazar dəyəri ($ mlrd). Canlı dəyişmə Finnhub-dan gəlir.
 const UNIVERSE_SRC = {
   "TEXNOLOGİYA": "NVDA:4300 AAPL:3900 MSFT:3700 AVGO:1600 TSM:1300 ORCL:700 PLTR:420 AMD:380 ASML:300 CSCO:290 IBM:270 CRM:240 MU:220 SHOP:200 APP:200 AMAT:190 NOW:190 INTC:180 QCOM:180 INTU:180 LRCX:170 TXN:170 ANET:170 ACN:160 APH:160 ADBE:150 ARM:150 PANW:130 CRWD:120 KLAC:120 ADI:120 DELL:95 CDNS:95 SNPS:80 SNOW:75 FTNT:75 MRVL:70 NET:70 WDAY:65 ADSK:65 GLW:60 MSTR:60 ROP:55 NXPI:55 STX:55 TEL:50 DDOG:50 WDC:45 MPWR:45 TEAM:45 ZS:40 MCHP:35 SNDK:30 HPE:30 HPQ:25 TER:25 SMCI:25 NTAP:22 ON:22",
-  "KOMMUNİKASİYA": "GOOGL:3100 META:1800 NFLX:420 TMUS:260 DIS:200 T:190 VZ:180 CMCSA:120 SPOT:120 EA:50 WBD:50 TTWO:45 RDDT:40 CHTR:40 PINS:20 SNAP:15",
+  "KOMMUNİKASİYA": "GOOGL:3100 META:1800 NFLX:420 TMUS:260 DIS:200 T:190 VZ:180 CMCSA:120 SPOT:120 TTWO:45 RDDT:40 CHTR:40 PINS:20 SNAP:15",
   "İSTEHLAK (SİKLİK)": "AMZN:2400 TSLA:1400 HD:380 MCD:220 BKNG:170 TJX:160 LOW:140 SBUX:100 NKE:100 DASH:100 ABNB:80 ORLY:80 RCL:80 MAR:75 CVNA:70 AZO:65 GM:65 HLT:65 CMG:50 ROST:50 DHI:45 F:45 YUM:40 EBAY:40 LEN:30 ULTA:25 EXPE:25 LULU:20 DECK:15",
   "İSTEHLAK (ƏSAS)": "WMT:820 COST:420 PG:360 KO:300 PM:250 PEP:200 MO:100 MDLZ:80 CL:65 MNST:60 TGT:45 KDP:45 KR:45 KMB:40 SYY:38 HSY:35 KHC:32 GIS:30 EL:30 STZ:25 DG:25 ADM:25 CHD:22",
-  "MALİYYƏ": "BRK-B:1050 JPM:820 V:660 MA:520 BAC:380 WFC:270 GS:250 MS:240 AXP:230 BX:190 C:180 BLK:170 SCHW:170 SPGI:160 PGR:150 COF:140 KKR:120 CB:115 MMC:100 CME:100 HOOD:100 IBKR:100 ICE:95 MCO:90 FI:90 AON:80 COIN:80 APO:80 BK:80 PNC:75 USB:75 PYPL:70 TRV:60 TFC:60 AFL:58 MET:55 ALL:55 AMP:50 AIG:45 PRU:38 SOFI:30",
+  "MALİYYƏ": "BRK-B:1050 JPM:820 V:660 MA:520 BAC:380 WFC:270 GS:250 MS:240 AXP:230 BX:190 C:180 BLK:170 SCHW:170 SPGI:160 PGR:150 COF:140 KKR:120 CB:115 MRSH:105 CME:100 HOOD:100 IBKR:100 ICE:95 MCO:90 FISV:33 AON:80 COIN:80 APO:80 BNY:80 PNC:75 USB:75 PYPL:70 TRV:60 TFC:60 AFL:58 MET:55 ALL:55 AMP:50 AIG:45 PRU:38 XYZ:45 SOFI:30",
   "SƏHİYYƏ": "LLY:800 JNJ:420 ABBV:380 UNH:300 MRK:240 ABT:220 TMO:200 ISRG:190 AMGN:160 DHR:150 BSX:150 SYK:145 PFE:140 GILD:140 VRTX:120 MDT:115 BMY:95 CVS:95 HCA:95 MCK:90 CI:85 ELV:80 REGN:65 ZTS:65 COR:55 BDX:55 IDXX:50 EW:45 DXCM:30 HUM:30",
   "SƏNAYE": "GE:300 CAT:260 RTX:230 UBER:190 GEV:180 BA:160 HON:140 UNP:140 ETN:140 DE:130 ADP:120 LMT:110 TT:95 PH:95 WM:90 GD:90 MMM:85 NOC:80 UPS:80 HWM:80 CTAS:80 ITW:75 JCI:75 EMR:75 TDG:75 RSG:70 CSX:65 PWR:65 NSC:60 FDX:60 VRT:60 CARR:55 PCAR:55 URI:55 LHX:55 AXON:55 FAST:50 PAYX:50 CPRT:45 DAL:40 UAL:35 ODFL:35",
   "ENERJİ": "XOM:480 CVX:300 COP:120 EPD:70 WMB:70 EOG:65 KMI:60 ET:60 SLB:55 PSX:55 MPC:55 OKE:50 VLO:45 OXY:45 BKR:45 FANG:42 HAL:25 DVN:22",
@@ -403,7 +403,7 @@ const UNIVERSE_SRC = {
   "MATERİALLAR": "LIN:220 SHW:90 NEM:90 ECL:75 CRH:70 APD:65 FCX:65 CTVA:45 VMC:38 MLM:37 NUE:32 DD:30 PPG:25 DOW:18"
 };
 // Açar olmayanda göstərilən demo faizlər (ilk şəkildən). Qalanlar boz görünür.
-const DEMO = Object.fromEntries("AAPL:-1.90 NVDA:2.29 MSFT:2.74 AVGO:3.07 AMD:3.65 MU:2.58 ORCL:5.85 INTC:0.97 AMAT:1.97 LRCX:1.39 PANW:-0.43 TXN:3.47 ANET:3.52 IBM:-0.98 CRWD:1.19 DELL:3.98 APH:5.45 PLTR:-1.65 CSCO:1.34 QCOM:1.45 CRM:-1.76 ACN:-2.45 ADBE:-2.12 INTU:-2.10 NOW:2.97 ADI:1.68 KLAC:2.02 SNDK:4.78 STX:2.13 WDC:2.59 MRVL:0.33 CDNS:-1.75 SNPS:-0.69 FTNT:1.51 GLW:2.39 BRK-B:0.17 JPM:-0.76 V:-1.20 MA:-1.66 BAC:0.18 MS:0.19 GS:-0.29 WFC:-0.42 BLK:-0.50 SCHW:0.64 AXP:-0.76 C:-0.32 BX:-1.62 SPGI:-1.92 PGR:-2.06 COF:-0.98 HOOD:2.19 CME:-0.71 BK:1.04 KKR:-2.06 CB:-0.66 APO:-4.95 GE:1.55 CAT:1.68 RTX:0.51 GEV:6.49 DE:-0.27 UNP:-1.16 UBER:-0.16 ETN:7.00 BA:-1.19 LMT:-0.65 HWM:4.76 PWR:5.77 MMM:-0.73 CTAS:-0.46 JCI:2.33 ITW:-1.18 NOC:-0.90 GD:0.28 VRT:5.23 EMR:0.26 UPS:-0.49 CSX:-1.74 FDX:-0.07 AMZN:2.06 TSLA:-1.32 HD:-2.20 MCD:-0.98 TJX:-2.39 LOW:-2.19 SBUX:0.35 BKNG:1.25 ABNB:-2.43 DASH:-3.55 GM:-1.78 ROST:0.44 RCL:-2.46 HLT:-0.24 ORLY:-0.78 WMT:-2.22 COST:-2.05 KO:-1.07 PG:-0.92 PM:-0.12 PEP:-2.24 MO:-0.30 MDLZ:-1.90 CL:-1.86 TGT:-2.51 KMB:-3.50"
+const DEMO = Object.fromEntries("AAPL:-1.90 NVDA:2.29 MSFT:2.74 AVGO:3.07 AMD:3.65 MU:2.58 ORCL:5.85 INTC:0.97 AMAT:1.97 LRCX:1.39 PANW:-0.43 TXN:3.47 ANET:3.52 IBM:-0.98 CRWD:1.19 DELL:3.98 APH:5.45 PLTR:-1.65 CSCO:1.34 QCOM:1.45 CRM:-1.76 ACN:-2.45 ADBE:-2.12 INTU:-2.10 NOW:2.97 ADI:1.68 KLAC:2.02 SNDK:4.78 STX:2.13 WDC:2.59 MRVL:0.33 CDNS:-1.75 SNPS:-0.69 FTNT:1.51 GLW:2.39 BRK-B:0.17 JPM:-0.76 V:-1.20 MA:-1.66 BAC:0.18 MS:0.19 GS:-0.29 WFC:-0.42 BLK:-0.50 SCHW:0.64 AXP:-0.76 C:-0.32 BX:-1.62 SPGI:-1.92 PGR:-2.06 COF:-0.98 HOOD:2.19 CME:-0.71 BNY:1.04 KKR:-2.06 CB:-0.66 APO:-4.95 GE:1.55 CAT:1.68 RTX:0.51 GEV:6.49 DE:-0.27 UNP:-1.16 UBER:-0.16 ETN:7.00 BA:-1.19 LMT:-0.65 HWM:4.76 PWR:5.77 MMM:-0.73 CTAS:-0.46 JCI:2.33 ITW:-1.18 NOC:-0.90 GD:0.28 VRT:5.23 EMR:0.26 UPS:-0.49 CSX:-1.74 FDX:-0.07 AMZN:2.06 TSLA:-1.32 HD:-2.20 MCD:-0.98 TJX:-2.39 LOW:-2.19 SBUX:0.35 BKNG:1.25 ABNB:-2.43 DASH:-3.55 GM:-1.78 ROST:0.44 RCL:-2.46 HLT:-0.24 ORLY:-0.78 WMT:-2.22 COST:-2.05 KO:-1.07 PG:-0.92 PM:-0.12 PEP:-2.24 MO:-0.30 MDLZ:-1.90 CL:-1.86 TGT:-2.51 KMB:-3.50"
   .split(" ").map(s => { const [t, v] = s.split(":"); return [t, +v]; }));
 const UNIVERSE = Object.entries(UNIVERSE_SRC).flatMap(([sec, s]) => s.split(" ").map(x => { const [t, cap] = x.split(":"); return [t, sec, +cap, DEMO[t] ?? null]; }));
 const UNIVERSE_MAP = Object.fromEntries(UNIVERSE.map(x => [x[0], x]));
@@ -429,11 +429,24 @@ if ((lists.v || 1) < 2) {
   });
   lists.v = 2;
 }
+// Adı dəyişmiş və birjadan çıxmış səhmlər
+const RENAMED = { FI: "FISV", BK: "BNY", MMC: "MRSH" }, DELISTED = new Set(["EA", "WBD"]);
+if (lists.v < 3) {
+  Object.values(lists.data).forEach(l => {
+    const seen = new Set();
+    l.stocks = (l.stocks || []).filter(x => !DELISTED.has(x[0])).map(x => {
+      const n = RENAMED[x[0]]; return n ? [n, ...(UNIVERSE_MAP[n] || x).slice(1)] : x;
+    }).filter(x => !seen.has(x[0]) && seen.add(x[0]));
+    if (l === lists.data["Əsas"] && !l.stocks.some(x => x[0] === "XYZ")) l.stocks.push([...UNIVERSE_MAP.XYZ]);
+  });
+  lists.v = 3;
+}
 Object.values(lists.data).forEach(l => { l.stocks ||= []; l.crypto ||= []; l.cryptoHide ||= []; if (l.cryptoTop == null) l.cryptoTop = 0; });
 if (!lists.data[lists.active]) lists.active = Object.keys(lists.data)[0];
 store.set("lists", lists);
 let L = lists.data[lists.active];
 let portfolio = store.get("portfolio", []);
+portfolio.forEach(p => { if (p.kind === "stock" && RENAMED[p.id]) { p.id = p.sym = RENAMED[p.id]; } });
 let alerts = store.get("alerts", []);
 const prefs = Object.assign({ period: "24h", size: "cap", cur: "USD", theme: "dark" }, store.get("prefs", {}));
 const saveLists = () => store.set("lists", lists);
@@ -538,7 +551,7 @@ function tile(parent, r, scale, held) {
   if (r.w > 20 && r.h > 13) {
     const b = document.createElement("b"); b.style.fontSize = fs + "px"; b.textContent = r.name; d.appendChild(b);
     if (r.h > fs * 2.1) { const i = document.createElement("i"); i.style.fontSize = fs * 0.62 + "px"; i.textContent = pct(r.chg); d.appendChild(i); }
-    if (r.h > fs * 3.3 && r.w > 54) { const p = document.createElement("span"); p.className = "p"; p.style.fontSize = Math.max(9, fs * 0.46) + "px"; p.textContent = money(r.price); d.appendChild(p); }
+    if (r.h > fs * 2.85 && r.w > 40) { const p = document.createElement("span"); p.className = "p"; p.style.fontSize = Math.max(9, fs * 0.46) + "px"; p.textContent = money(r.price); d.appendChild(p); }
   }
   const key = r.kind + ":" + r.id;
   tileEls.set(key, { el: d, r });
@@ -699,8 +712,8 @@ function updateHint() {
   }
   if (view === "stocks" && !getKey()) {
     const b = document.createElement("div"); b.className = "banner";
-    b.innerHTML = `<span><b>Səhmlər hələ canlı deyil.</b> Canlı qiymətlər üçün pulsuz Finnhub açarı lazımdır (1–2 dəqiqə). Kriptolar açarsız canlıdır.</span>`;
-    const btn = document.createElement("button"); btn.className = "btn pri"; btn.textContent = "Açar əlavə et";
+    b.innerHTML = `<span>Səhm qiymətləri ~15 dəqiqə gecikmə ilə gəlir. <b>Real vaxt</b> üçün pulsuz Finnhub açarı əlavə edin (1–2 dəqiqə).</span>`;
+    const btn = document.createElement("button"); btn.className = "btn"; btn.textContent = "Açar əlavə et";
     btn.onclick = () => { switchView("list"); setTimeout(() => { $("#keyInput").scrollIntoView({ block: "center" }); $("#keyInput").focus(); }, 50); };
     b.appendChild(btn); h.appendChild(b);
   }
@@ -896,7 +909,7 @@ async function loadStocks() {
           const l = live[t];
           // real vaxt axını son dəqiqədə daha təzə qiymət veribsə, onu saxla
           const price = l?.wsAt && Date.now() - l.wsAt < 60000 ? l.price : q.c;
-          live[t] = { price, chg: q.pc ? (price / q.pc - 1) * 100 : (q.dp || 0), high: q.h, low: q.l, prev: q.pc, wsAt: l?.wsAt };
+          live[t] = { price, chg: q.pc ? (price / q.pc - 1) * 100 : (q.dp || 0), high: q.h, low: q.l, prev: q.pc, wsAt: l?.wsAt, fresh: Date.now() };
           markLive("stock", t);
         }
       } catch (e) {
@@ -907,6 +920,28 @@ async function loadStocks() {
       await sleep(1100);   // pulsuz plan: dəqiqədə 60 sorğu
     }
   }
+}
+
+// Səhmlər: açarsız qiymətlər. GitHub-da hər ~10 dəqiqədən bir işləyən proses
+// bütün səhmlərin qiymətini bu fayla yazır (bir sorğu ilə hamısı gəlir).
+const SNAPSHOT_URL = "https://raw.githubusercontent.com/keen7766/investweb/data/stocks.json";
+let snapAt = 0;
+async function loadSnapshot() {
+  try {
+    const d = await (await fetch(SNAPSHOT_URL + "?t=" + Math.floor(Date.now() / 60000))).json();
+    if (!d?.quotes) return;
+    snapAt = d.updated * 1000;
+    for (const [t, q] of Object.entries(d.quotes)) {
+      const [price, prev, high, low] = q;
+      if (!price) continue;
+      const l = live[t];
+      // Finnhub (açar) son 10 dəqiqədə daha təzə qiymət veribsə, onu saxla
+      if (l?.fresh && Date.now() - l.fresh < 600000) continue;
+      live[t] = { price, prev, high, low, chg: prev ? (price / prev - 1) * 100 : 0, snap: true };
+      markLive("stock", t);
+    }
+    setStatus();
+  } catch {}
 }
 
 // Səhmlər: Finnhub real vaxt axını (pulsuz planda 50 səhmə qədər)
@@ -925,7 +960,7 @@ function connectFinnhubWS() {
     fwsLive = Date.now();
     for (const tr of m.data) {
       const t = fromFh[tr.s] || tr.s; const l = live[t]; if (!l) continue;
-      l.price = tr.p; l.wsAt = Date.now();
+      l.price = tr.p; l.wsAt = l.fresh = Date.now();
       if (l.prev) l.chg = (tr.p / l.prev - 1) * 100;
       markLive("stock", t);
     }
@@ -1328,7 +1363,11 @@ function setStatus() {
   const s = $("#status");
   const dot = (on, rt) => `<span class="dot${on ? "" : " off"}${rt ? " rt" : ""}"></span>`;
   if (view === "stocks") {
-    if (!getKey()) { s.innerHTML = `${dot(false)}Səhmlər: demo (açar yoxdur)`; return; }
+    if (!getKey()) {
+      const n = L.stocks.filter(x => live[x[0]]).length;
+      s.innerHTML = snapAt ? `${dot(true)}${n}/${L.stocks.length} səhm · ${fmtTime(snapAt)} qiymətləri (~15 dəq. gecikmə)` : "Səhm qiymətləri yüklənir…";
+      return;
+    }
     if (stockMsg) { s.textContent = stockMsg; return; }
     const ws = fwsLive && Date.now() - fwsLive < 120000;
     s.innerHTML = `${dot(true, ws)}Canlı${ws ? " · real vaxt" : ""} · ${Object.keys(live).length}/${stockTotal || L.stocks.length} səhm yükləndi` + (ws ? "" : `<span style="opacity:.7"> · bazar bağlıdırsa son qiymətlər</span>`);
@@ -1486,6 +1525,21 @@ loadStocks();
 loadCrypto(); setInterval(loadCrypto, 60000);
 loadFng(); setInterval(loadFng, 30 * 60000);
 setInterval(setStatus, 5000);
+loadSnapshot(); setInterval(loadSnapshot, 60000);
+
+// Proqram açılanda / arxa plandan qayıdanda: hər şeyi dərhal yenilə və canlı axınları yenidən qoş
+let lastWake = Date.now();
+function wakeUp() {
+  if (Date.now() - lastWake < 5000) return;
+  lastWake = Date.now();
+  loadSnapshot(); loadCrypto(); loadFng();
+  if (!bws) connectBinance();
+  if (getKey()) { if (!fws) connectFinnhubWS(); loadStocks(); }
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") wakeUp(); });
+addEventListener("pageshow", e => { if (e.persisted) wakeUp(); });
+addEventListener("online", () => { lastWake = 0; wakeUp(); toast("İnternet bərpa olundu", "Qiymətlər yenilənir…"); });
+addEventListener("offline", () => toast("İnternet yoxdur", "Qiymətlər internet qayıdanda avtomatik yenilənəcək."));
 
 // =================== Telefona quraşdırma (PWA) ===================
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
