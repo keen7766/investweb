@@ -1,102 +1,152 @@
 <!DOCTYPE html>
-<html lang="az">
+<html lang="az" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#111318">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Bazar Xəritəsi">
-<title>Bazar Xəritəsi</title>
+<meta name="apple-mobile-web-app-title" content="investWEB">
+<title>investWEB</title>
 <style>
+  /* Tünd tema (standart) */
   :root {
     --bg: #111318; --panel: #1a1d24; --panel2: #1f232c; --line: #2d323d;
-    --fg: #e8e8e8; --muted: #8b93a1; --accent: #2f6feb; --up: #4ade80; --down: #f87171;
+    --fg: #e8e8e8; --muted: #8b93a1; --accent: #2f6feb; --link: #58a6ff;
+    --up: #4ade80; --down: #f87171; --warn: #d29922; --gap: #111318;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f4f7; --panel: #ffffff; --panel2: #ffffff; --line: #d9dde4;
+    --fg: #1a1d24; --muted: #5b6472; --accent: #2f6feb; --link: #1f62d0;
+    --up: #15803d; --down: #c62828; --warn: #a16207; --gap: #f3f4f7;
+    color-scheme: light;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   [hidden] { display: none !important; }
   html, body { background: var(--bg); color: var(--fg); font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 14px; }
   body { min-height: 100dvh; display: flex; flex-direction: column; padding: env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0); }
-  button, input, select { font: inherit; color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; }
   button { cursor: pointer; }
+  a { color: var(--link); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .up { color: var(--up); } .down { color: var(--down); }
+  .num { font-variant-numeric: tabular-nums; }
 
-  header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  h1 { font-size: 16px; font-weight: 700; white-space: nowrap; }
-  .tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .tabs button { background: none; border: 0; padding: 7px 12px; color: #bbb; white-space: nowrap; }
+  header { display: flex; align-items: center; gap: 10px; padding: 10px 12px 6px; flex-wrap: wrap; }
+  h1 { font-size: 18px; font-weight: 800; letter-spacing: -.3px; white-space: nowrap; }
+  h1 span { color: var(--accent); }
+  .tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: none; background: none; border: 0; padding: 7px 12px; color: var(--muted); white-space: nowrap; }
   .tabs button.on { background: var(--accent); color: #fff; }
-  .search { position: relative; flex: 1 1 180px; max-width: 280px; }
-  .search input { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px 7px 30px; }
-  .search::before { content: "⌕"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
-  .ctl { display: flex; gap: 6px; align-items: center; }
-  select { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 0 12px 8px; border-bottom: 1px solid var(--line); }
+  .search { position: relative; flex: 1 1 170px; max-width: 260px; }
+  .search input { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px 6px 28px; }
+  .search::before { content: "⌕"; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
+  select, .inp { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+  .iconbtn { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; }
   #status { font-size: 12px; color: var(--muted); margin-left: auto; }
 
-  .movers { display: flex; gap: 6px; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: none; }
-  .movers::-webkit-scrollbar { display: none; }
-  .movers .lbl { font-size: 11px; color: var(--muted); align-self: center; white-space: nowrap; padding-right: 2px; }
+  .strip { display: flex; gap: 6px; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: none; align-items: center; }
+  .strip::-webkit-scrollbar { display: none; }
+  .strip .lbl { font-size: 11px; color: var(--muted); white-space: nowrap; padding: 0 2px 0 4px; }
   .chip { flex: none; border: 0; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; }
+  .chip.plain { background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
   .hint { margin: 8px 12px 0; font-size: 12px; color: var(--muted); }
-  .hint a { color: #58a6ff; cursor: pointer; }
+  .hint a { cursor: pointer; }
 
   #map { position: relative; margin: 8px 12px 12px; overflow: hidden; border-radius: 6px; }
-  .sector { position: absolute; border: 1px solid var(--bg); }
-  .sector-title { position: absolute; left: 0; top: 0; right: 0; height: 16px; font-size: 10px; font-weight: 600; letter-spacing: .5px; color: #cfd3da; padding: 2px 4px; background: var(--panel); white-space: nowrap; overflow: hidden; }
-  .tile { position: absolute; border: 1px solid var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; transition: opacity .15s, filter .15s; text-shadow: 0 1px 2px rgba(0,0,0,.45); cursor: pointer; color: #fff; }
-  .tile:hover { filter: brightness(1.2); z-index: 2; outline: 2px solid #fff; }
+  .sector { position: absolute; border: 1px solid var(--gap); }
+  .sector-title { position: absolute; left: 0; top: 0; right: 0; height: 16px; font-size: 10px; font-weight: 700; letter-spacing: .5px; color: var(--fg); padding: 2px 4px; background: var(--panel); white-space: nowrap; overflow: hidden; }
+  .tile { position: absolute; border: 1px solid var(--gap); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; transition: opacity .15s, filter .15s; text-shadow: 0 1px 2px rgba(0,0,0,.45); cursor: pointer; color: #fff; }
+  .tile:hover { filter: brightness(1.15); z-index: 2; outline: 2px solid #fff; }
   .tile b { font-weight: 700; line-height: 1.05; }
   .tile i { font-style: normal; line-height: 1.15; }
   .tile.dim { opacity: .18; }
   .tile.hit { outline: 3px solid #ffd33d; z-index: 3; }
   .tile.nodata::after { content: "demo"; position: absolute; right: 2px; bottom: 1px; font-size: 8px; opacity: .6; }
+  .tile.held::before { content: "★"; position: absolute; left: 3px; top: 1px; font-size: 10px; color: #ffd33d; }
 
-  #tip { position: fixed; pointer-events: none; background: var(--panel2); border: 1px solid #3a404d; border-radius: 6px; padding: 8px 10px; font-size: 13px; display: none; z-index: 20; min-width: 170px; box-shadow: 0 6px 20px rgba(0,0,0,.5); }
-  .row { display: flex; justify-content: space-between; gap: 14px; color: #aab; padding: 1px 0; }
-  .row b { color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
+  #tip { position: fixed; pointer-events: none; background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 13px; display: none; z-index: 20; min-width: 180px; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+  .row { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); padding: 1px 0; }
+  .row b { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
 
-  /* Detal paneli (telefonda alt panel) */
-  #sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 110%); width: min(440px, 100%); background: var(--panel2); border: 1px solid var(--line); border-bottom: 0; border-radius: 14px 14px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom,0)); z-index: 30; transition: transform .2s; box-shadow: 0 -8px 30px rgba(0,0,0,.5); }
+  #sheet { position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 110%); width: min(460px, 100%); max-height: 85dvh; overflow-y: auto; background: var(--panel2); border: 1px solid var(--line); border-bottom: 0; border-radius: 14px 14px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom,0)); z-index: 30; transition: transform .2s; box-shadow: 0 -8px 30px rgba(0,0,0,.4); }
   #sheet.open { transform: translate(-50%, 0); }
-  #sheet h2 { font-size: 20px; display: flex; align-items: baseline; gap: 8px; }
-  #sheet h2 small { font-size: 13px; color: var(--muted); font-weight: 400; }
+  #sheet .ttl { font-size: 20px; font-weight: 700; display: flex; align-items: baseline; gap: 8px; padding-right: 30px; }
+  #sheet .ttl small { font-size: 13px; color: var(--muted); font-weight: 400; }
   #sheet .close { position: absolute; right: 10px; top: 8px; background: none; border: 0; font-size: 22px; color: var(--muted); padding: 4px 8px; }
   #sheet .big { font-size: 26px; font-weight: 700; margin: 6px 0 8px; font-variant-numeric: tabular-nums; }
-  #sheet svg { width: 100%; height: 70px; display: block; margin: 6px 0 10px; }
+  .spark { width: 100%; height: 70px; display: block; margin: 6px 0 2px; }
   .btns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
   .btn { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; text-decoration: none; color: var(--fg); display: inline-block; }
   .btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
   .btn.red { color: var(--down); }
   .btn.green { background: #238636; border-color: #238636; color: #fff; }
+  .news { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .news h3 { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .news a { display: block; text-decoration: none; color: var(--fg); padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; line-height: 1.35; }
+  .news a small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
 
-  /* Təqvim və siyahı səhifələri */
   .page { padding: 12px; display: grid; gap: 12px; max-width: 1100px; width: 100%; margin: 0 auto; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
   .card h2 { font-size: 15px; margin-bottom: 10px; }
-  .card p.note { font-size: 12px; color: var(--muted); margin-top: 6px; }
-  .form { display: flex; gap: 6px; flex-wrap: wrap; }
-  .form input { flex: 1 1 120px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .form { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .form .inp { flex: 1 1 110px; background: var(--bg); padding: 8px 10px; }
+  .form .inp.sm { flex: 0 1 100px; }
   .msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
   .list { margin-top: 10px; max-height: 420px; overflow-y: auto; border-top: 1px solid var(--line); }
   .li { display: flex; align-items: center; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); }
   .li .t { font-weight: 700; min-width: 64px; }
   .li .s { color: var(--muted); font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .li button { background: none; border: 0; color: var(--down); font-size: 18px; padding: 0 6px; }
+  .li .x { background: none; border: 0; color: var(--down); font-size: 18px; padding: 0 6px; }
   .day { margin-top: 12px; }
   .day h3 { font-size: 13px; color: var(--muted); margin-bottom: 4px; text-transform: capitalize; }
   .ev { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
   .ev .t { font-weight: 700; min-width: 60px; }
   .ev .s { color: var(--muted); flex: 1; }
-  .ev .tag { font-size: 11px; background: var(--panel2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; color: #aab; white-space: nowrap; }
+  .tag { font-size: 11px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; color: var(--muted); white-space: nowrap; }
   .empty { color: var(--muted); padding: 14px 0; }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .kpi span { font-size: 12px; color: var(--muted); }
+  .kpi b { display: block; font-size: 22px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .alloc { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 10px 0 4px; background: var(--bg); }
+  .alloc i { display: block; height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .tbl { overflow-x: auto; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  th:first-child, td:first-child { text-align: left; }
+  td .x { background: none; border: 0; color: var(--down); font-size: 17px; }
+
+  .fng { display: inline-flex; align-items: center; gap: 6px; }
+  .fng b { font-size: 13px; }
+  .gauge { width: 70px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #f63538, #d29922, #8b93a1, #30cc5a, #15803d); position: relative; }
+  .gauge i { position: absolute; top: -3px; width: 3px; height: 12px; background: var(--fg); border-radius: 2px; }
+
+  #cmpChart { width: 100%; height: auto; display: block; margin-top: 10px; }
+  #cmpChart text { fill: var(--muted); font-size: 11px; }
+  #cmpChart .grid { stroke: var(--line); stroke-width: 1; }
+
+  #toasts { position: fixed; top: calc(10px + env(safe-area-inset-top,0)); right: 10px; left: 10px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; z-index: 50; pointer-events: none; }
+  .toast { pointer-events: auto; background: var(--panel2); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 8px; padding: 10px 14px; max-width: 360px; box-shadow: 0 6px 20px rgba(0,0,0,.35); font-size: 13px; }
+  .toast b { display: block; margin-bottom: 2px; }
+  textarea.inp { width: 100%; min-height: 80px; background: var(--bg); padding: 8px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; resize: vertical; }
 
   @media (max-width: 700px) {
     header { gap: 8px; }
-    h1 { font-size: 15px; }
-    .search { order: 5; max-width: none; flex-basis: 100%; }
-    #status { flex-basis: 100%; margin-left: 0; order: 6; }
+    .search { order: 10; max-width: none; flex-basis: 100%; }
+    #status { flex-basis: 100%; margin-left: 0; order: 11; }
     .cols { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .kpis .kpi:first-child { grid-column: 1 / -1; }
     #map { margin: 8px 6px 10px; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -104,26 +154,80 @@
 </head>
 <body>
 <header>
-  <h1>📊 Bazar Xəritəsi</h1>
-  <div class="tabs" id="tabs">
-    <button data-view="stocks" class="on">Səhmlər</button><button data-view="crypto">Kripto</button><button data-view="calendar">Təqvim</button><button data-view="list">Siyahım</button>
-  </div>
-  <div class="search" id="searchBox"><input id="q" type="search" placeholder="Axtar: AAPL, BTC…" autocomplete="off"></div>
-  <div class="ctl" id="mapCtl">
-    <select id="period" title="Dövr">
-      <option value="1h">1 saat</option><option value="24h" selected>24 saat</option><option value="7d">7 gün</option><option value="30d">30 gün</option>
-    </select>
-    <select id="size" title="Ölçü">
-      <option value="cap">Ölçü: bazar dəyəri</option><option value="equal">Ölçü: bərabər</option>
-    </select>
-  </div>
-  <div id="status"></div>
+  <h1>invest<span>WEB</span></h1>
+  <nav class="tabs" id="tabs">
+    <button data-view="stocks" class="on">Səhmlər</button><button data-view="crypto">Kripto</button><button data-view="portfolio">Portfel</button><button data-view="compare">Müqayisə</button><button data-view="calendar">Təqvim</button><button data-view="list">Siyahım</button>
+  </nav>
 </header>
+<div class="toolbar">
+  <select id="listSel" title="Aktiv siyahı"></select>
+  <div class="search" id="searchBox"><input id="q" type="search" placeholder="Axtar: AAPL, BTC…" autocomplete="off"></div>
+  <select id="period" title="Dövr">
+    <option value="1h">1 saat</option><option value="24h">24 saat</option><option value="7d">7 gün</option><option value="30d">30 gün</option>
+  </select>
+  <select id="size" title="Kvadrat ölçüsü">
+    <option value="cap">Ölçü: bazar dəyəri</option><option value="volume">Ölçü: ticarət həcmi</option><option value="equal">Ölçü: bərabər</option>
+  </select>
+  <select id="cur" title="Valyuta"><option value="USD">$ USD</option><option value="AZN">₼ AZN</option><option value="EUR">€ EUR</option></select>
+  <button class="iconbtn" id="themeBtn" title="Tema dəyiş" aria-label="Tema dəyiş">☀</button>
+  <div id="status"></div>
+</div>
 
 <section id="mapView">
-  <div class="movers" id="movers"></div>
+  <div class="strip" id="sectors"></div>
+  <div class="strip" id="movers"></div>
   <div class="hint" id="hint"></div>
   <div id="map"></div>
+</section>
+
+<section id="portfolioView" class="page" hidden>
+  <div class="kpis">
+    <div class="kpi"><span>Ümumi dəyər</span><b id="pfValue">—</b></div>
+    <div class="kpi"><span>Qazanc / zərər</span><b id="pfPL">—</b></div>
+    <div class="kpi"><span>Bu gün</span><b id="pfDay">—</b></div>
+  </div>
+  <div class="card">
+    <h2>💼 Portfelim</h2>
+    <form class="form" id="pfForm">
+      <select id="pfKind" class="inp sm"><option value="stock">Səhm</option><option value="crypto">Kripto</option></select>
+      <input class="inp" id="pfSym" placeholder="Simvol: AAPL, BTC" autocomplete="off">
+      <input class="inp sm" id="pfQty" type="number" step="any" min="0" placeholder="Say">
+      <input class="inp sm" id="pfCost" type="number" step="any" min="0" placeholder="Alış qiyməti">
+      <button class="btn green">Əlavə et</button>
+    </form>
+    <div class="msg" id="pfMsg"></div>
+    <div class="alloc" id="pfAlloc"></div>
+    <div class="legend" id="pfLegend"></div>
+    <div class="tbl"><table id="pfTable"></table></div>
+    <p class="note">Alış qiyməti seçilmiş valyutada yazılır. Səhm qiymətləri üçün Finnhub açarı lazımdır. ★ işarəsi xəritədə portfeldəki aktivləri göstərir.</p>
+  </div>
+  <div class="card">
+    <h2>🔔 Qiymət xəbərdarlıqları</h2>
+    <form class="form" id="alForm">
+      <select id="alKind" class="inp sm"><option value="crypto">Kripto</option><option value="stock">Səhm</option></select>
+      <input class="inp" id="alSym" placeholder="Simvol: BTC, NVDA" autocomplete="off">
+      <select id="alType" class="inp"><option value="above">Qiymət ≥ (yuxarı qalxsa)</option><option value="below">Qiymət ≤ (aşağı düşsə)</option><option value="chg">Günlük dəyişmə ± % keçsə</option></select>
+      <input class="inp sm" id="alVal" type="number" step="any" placeholder="Dəyər">
+      <button class="btn green">Qur</button>
+    </form>
+    <div class="msg" id="alMsg"></div>
+    <div class="list" id="alList"></div>
+    <div class="btns"><button class="btn" id="notifBtn">Bildirişlərə icazə ver</button></div>
+    <p class="note">Xəbərdarlıqlar proqram açıq olanda yoxlanılır: kripto hər dəqiqə, səhmlər hər ~2 dəqiqə. Şərt ödənəndə səs, bildiriş və ekranda mesaj çıxır.</p>
+  </div>
+</section>
+
+<section id="compareView" class="page" hidden>
+  <div class="card">
+    <h2>📊 Kripto müqayisəsi</h2>
+    <div class="form">
+      <select id="cmpA" class="inp"></select><select id="cmpB" class="inp"></select><select id="cmpC" class="inp"></select>
+      <select id="cmpDays" class="inp sm"><option value="7">7 gün</option><option value="30" selected>30 gün</option><option value="90">90 gün</option><option value="365">1 il</option></select>
+    </div>
+    <div class="legend" id="cmpLegend" style="margin-top:10px"></div>
+    <svg id="cmpChart" viewBox="0 0 800 320" role="img" aria-label="Müqayisə qrafiki"></svg>
+    <p class="note">Hamısı başlanğıc nöqtəsindən faiz dəyişməsi kimi göstərilir, belə ki fərqli qiymətli aktivləri müqayisə etmək olar. Səhmlərin tarixi qiymətləri pulsuz API-lərdə yoxdur, onlar üçün TradingView-dakı "Compare" funksiyasından istifadə edin.</p>
+  </div>
 </section>
 
 <section id="calView" class="page" hidden>
@@ -131,7 +235,7 @@
     <h2>📅 Hesabat (earnings) təqvimi</h2>
     <div class="form">
       <select id="calRange"><option value="7">Növbəti 7 gün</option><option value="14" selected>Növbəti 14 gün</option><option value="30">Növbəti 30 gün</option></select>
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="calMine" checked> Yalnız siyahımdakılar</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="calMine" checked> Yalnız siyahım və portfelim</label>
     </div>
     <div id="calEarn"></div>
   </div>
@@ -142,58 +246,107 @@
 </section>
 
 <section id="listView" class="page" hidden>
+  <div class="card">
+    <h2>🗂 Siyahılar</h2>
+    <div class="form">
+      <select id="listSel2" class="inp"></select>
+      <input class="inp" id="newListName" placeholder="Yeni siyahının adı, məs. Riskli" autocomplete="off">
+      <button class="btn green" id="newListBtn">Yarat</button>
+      <button class="btn red" id="delListBtn">Bu siyahını sil</button>
+    </div>
+    <div class="msg" id="listMsg"></div>
+  </div>
   <div class="cols">
     <div class="card">
-      <h2>Səhmlərim (<span id="stockCount">0</span>)</h2>
+      <h2>Səhmlər (<span id="stockCount">0</span>)</h2>
       <form class="form" id="addStock">
-        <input id="stockIn" placeholder="Ticker, məs. NFLX" autocomplete="off" autocapitalize="characters">
-        <select id="stockSector"></select>
+        <input class="inp" id="stockIn" placeholder="Ticker, məs. NFLX" autocomplete="off" autocapitalize="characters">
+        <select id="stockSector" class="inp"></select>
         <button class="btn green">Əlavə et</button>
       </form>
       <div class="msg" id="stockMsg"></div>
       <div class="list" id="stockList"></div>
-      <div class="btns"><button class="btn red" id="resetStocks">Standart siyahını qaytar</button></div>
+      <div class="btns"><button class="btn red" id="resetStocks">Standart səhmləri qaytar</button></div>
     </div>
     <div class="card">
-      <h2>Kriptolarım (<span id="cryptoCount">0</span>)</h2>
+      <h2>Kriptolar (<span id="cryptoCount">0</span>)</h2>
       <form class="form" id="addCrypto">
-        <input id="cryptoIn" placeholder="Ad və ya simvol, məs. PEPE" autocomplete="off">
+        <input class="inp" id="cryptoIn" placeholder="Ad və ya simvol, məs. PEPE" autocomplete="off">
         <button class="btn green">Əlavə et</button>
       </form>
       <div class="msg" id="cryptoMsg"></div>
       <div class="list" id="cryptoList"></div>
-      <div class="btns"><button class="btn red" id="resetCrypto">Standart siyahını qaytar</button></div>
+      <div class="btns"><button class="btn red" id="resetCrypto">Standart kriptoları qaytar</button></div>
     </div>
   </div>
   <div class="card">
-    <h2>🔑 Finnhub API açarı (canlı səhm qiymətləri və təqvim üçün)</h2>
+    <h2>🔑 Finnhub API açarı</h2>
     <form class="form" id="keyForm">
-      <input id="keyInput" type="password" placeholder="Açarı bura yapışdırın" autocomplete="off">
+      <input class="inp" id="keyInput" type="password" placeholder="Açarı bura yapışdırın" autocomplete="off">
       <button class="btn green">Yadda saxla</button>
       <button type="button" class="btn red" id="keyDel">Sil</button>
     </form>
     <div class="msg" id="keyMsg"></div>
-    <p class="note">Açar yalnız bu brauzerdə saxlanılır. Pulsuz açar: <a href="https://finnhub.io/register" target="_blank" rel="noopener" style="color:#58a6ff">finnhub.io/register</a>. Kripto üçün açar lazım deyil.</p>
+    <p class="note">Canlı səhm qiymətləri, təqvim və səhm xəbərləri üçün lazımdır. Açar yalnız bu cihazda saxlanılır. Pulsuz açar: <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io/register</a></p>
+  </div>
+  <div class="card">
+    <h2>🔄 Başqa cihaza köçür (ixrac / idxal)</h2>
+    <div class="btns" style="margin-top:0"><button class="btn" id="expBtn">Kodu yarat və kopyala</button><button class="btn" id="impBtn">Yapışdırılan kodu yüklə</button></div>
+    <textarea class="inp" id="expBox" style="margin-top:10px" placeholder="Burada köçürmə kodu görünəcək, və ya başqa cihazdan kopyaladığınız kodu bura yapışdırın"></textarea>
+    <div class="msg" id="expMsg"></div>
+    <p class="note">Kod siyahıları, portfeli, xəbərdarlıqları və ayarları daşıyır. Finnhub açarı koda daxil deyil.</p>
   </div>
 </section>
 
 <div id="tip"></div>
+<div id="toasts" aria-live="polite"></div>
 <div id="sheet" role="dialog" aria-modal="false"><button class="close" id="sheetClose" aria-label="Bağla">×</button><div id="sheetBody"></div></div>
 
 <script>
 // =================== Köməkçilər ===================
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const safeUrl = u => /^https:\/\//i.test(u || "") ? u : null;
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 const getKey = () => { try { return localStorage.getItem("finnhubKey") || ""; } catch { return ""; } };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const pct = p => (p > 0 ? "+" : "") + (p ?? 0).toFixed(2) + "%";
-const fmtCap = b => b >= 1000 ? `$${(b / 1000).toFixed(2)} trln` : b >= 1 ? `$${b.toFixed(1)} mlrd` : `$${(b * 1000).toFixed(0)} mln`;
-const fmtPrice = p => p == null ? "—" : p >= 1 ? "$" + p.toLocaleString("en-US", { maximumFractionDigits: 2 }) : "$" + p.toPrecision(4);
+const pct = p => (p > 0 ? "+" : "") + (+p || 0).toFixed(2) + "%";
+const cls = v => (v || 0) >= 0 ? "up" : "down";
 const ymd = d => d.toISOString().slice(0, 10);
+const AY = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek"];
+const AY_UZUN = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avqust", "sentyabr", "oktyabr", "noyabr", "dekabr"];
+const HEFTE = ["bazar", "bazar ertəsi", "çərşənbə axşamı", "çərşənbə", "cümə axşamı", "cümə", "şənbə"];
+const p2 = n => String(n).padStart(2, "0");
+const fmtDay = t => { const d = new Date(t); return `${d.getDate()} ${AY[d.getMonth()]}`; };
+const fmtDT = t => { const d = new Date(t); return `${d.getDate()} ${AY[d.getMonth()]}, ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const fmtTime = t => { const d = new Date(t); return `${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+
+// =================== Valyuta ===================
+const RATES = { USD: 1, AZN: 1.7, EUR: 0.92 };
+const SYM = { USD: "$", AZN: "₼", EUR: "€" };
+function money(usd, digits) {
+  if (usd == null || isNaN(usd)) return "—";
+  const c = prefs.cur, v = usd * RATES[c], a = Math.abs(v);
+  const d = digits ?? (a >= 1 ? 2 : a >= 0.01 ? 4 : 8);
+  const n = (v < 0 ? "−" : "") + a.toLocaleString("en-US", { minimumFractionDigits: a >= 1 ? 2 : 0, maximumFractionDigits: d });
+  return c === "AZN" ? `${n} ₼` : SYM[c] + n;
+}
+function moneySigned(usd) { return (usd > 0 ? "+" : "") + money(usd); }
+function fmtCap(b) {
+  if (!b) return "—";
+  const v = b * RATES[prefs.cur], s = prefs.cur === "AZN" ? "" : SYM[prefs.cur], t = prefs.cur === "AZN" ? " ₼" : "";
+  return v >= 1000 ? `${s}${(v / 1000).toFixed(2)} trln${t}` : v >= 1 ? `${s}${v.toFixed(1)} mlrd${t}` : `${s}${(v * 1000).toFixed(0)} mln${t}`;
+}
+async function loadRates() {
+  try {
+    const r = await (await fetch("https://open.er-api.com/v6/latest/USD")).json();
+    if (r?.rates?.AZN) RATES.AZN = r.rates.AZN;
+    if (r?.rates?.EUR) RATES.EUR = r.rates.EUR;
+  } catch {}
+}
 
 // =================== Standart siyahılar ===================
 const DEFAULT_STOCKS = Object.entries({
@@ -206,26 +359,43 @@ const DEFAULT_STOCKS = Object.entries({
   "SƏHİYYƏ": [["LLY",800,0.90],["UNH",300,-1.30],["JNJ",420,0.30],["ABBV",380,-0.70],["MRK",240,0.50]],
   "ENERJİ": [["XOM",480,-0.80],["CVX",300,-0.60],["COP",120,-1.10]]
 }).flatMap(([sec, list]) => list.map(([t, cap, chg]) => [t, sec, cap, chg]));
-
 const DEFAULT_CRYPTO = ["bitcoin","ethereum","tether","ripple","binancecoin","solana","usd-coin","tron","dogecoin","cardano","hyperliquid","chainlink","bitcoin-cash","stellar","sui","avalanche-2","litecoin","hedera-hashgraph","shiba-inu","the-open-network","polkadot","monero","uniswap","aave","pepe","near","aptos","internet-computer","ethereum-classic","cosmos","arbitrum","optimism","filecoin","render-token","kaspa","algorand","vechain","injective-protocol","bittensor","ondo-finance"];
-
 const SECTOR_MAP = { technology: "TEXNOLOGİYA", semiconductors: "TEXNOLOGİYA", software: "TEXNOLOGİYA", banking: "MALİYYƏ", "financial services": "MALİYYƏ", insurance: "MALİYYƏ", retail: "İSTEHLAK (SİKLİK)", automobiles: "İSTEHLAK (SİKLİK)", "hotels, restaurants & leisure": "İSTEHLAK (SİKLİK)", media: "KOMMUNİKASİYA", telecommunication: "KOMMUNİKASİYA", pharmaceuticals: "SƏHİYYƏ", biotechnology: "SƏHİYYƏ", "health care": "SƏHİYYƏ", energy: "ENERJİ", "oil & gas": "ENERJİ", "aerospace & defense": "SƏNAYE", machinery: "SƏNAYE" };
+const defaultList = () => ({ stocks: DEFAULT_STOCKS.map(x => [...x]), crypto: DEFAULT_CRYPTO.map(id => ({ id })) });
 
 // =================== Vəziyyət ===================
-let stockList = store.get("stockList", null) || DEFAULT_STOCKS.map(x => [...x]);
-let cryptoList = store.get("cryptoList", null) || DEFAULT_CRYPTO.map(id => ({ id }));
-const prefs = Object.assign({ period: "24h", size: "cap" }, store.get("prefs", {}));
-let view = "stocks", query = "", currentItems = [];
-let cryptoData = null, cryptoErr = "";
-const live = {};               // ticker -> {chg, price, high, low, open, prev}
-let stockMsg = "", stockRun = 0;
+let lists = store.get("lists", null);
+if (!lists || !lists.data || !Object.keys(lists.data).length) {
+  // köhnə versiyadan köçürmə
+  lists = { active: "Əsas", data: { "Əsas": { stocks: store.get("stockList", null) || defaultList().stocks, crypto: store.get("cryptoList", null) || defaultList().crypto } } };
+}
+if (!lists.data[lists.active]) lists.active = Object.keys(lists.data)[0];
+let L = lists.data[lists.active];
+let portfolio = store.get("portfolio", []);
+let alerts = store.get("alerts", []);
+const prefs = Object.assign({ period: "24h", size: "cap", cur: "USD", theme: "dark" }, store.get("prefs", {}));
+const saveLists = () => store.set("lists", lists);
+const savePortfolio = () => store.set("portfolio", portfolio);
+const saveAlerts = () => store.set("alerts", alerts);
+const savePrefs = () => store.set("prefs", prefs);
 
-$("#period").value = prefs.period; $("#size").value = prefs.size;
+let view = "stocks", query = "", currentItems = [];
+const cryptoAll = {};          // id -> CoinGecko sətri
+let cryptoLoaded = false, cryptoErr = "";
+const live = {};               // ticker -> {chg, price, high, low, prev}
+let stockMsg = "", stockRun = 0, fng = null;
+
+// =================== Tema ===================
+function applyTheme() {
+  document.documentElement.dataset.theme = prefs.theme;
+  $("#themeBtn").textContent = prefs.theme === "dark" ? "☀" : "🌙";
+  document.querySelector('meta[name="theme-color"]').content = prefs.theme === "dark" ? "#111318" : "#f3f4f7";
+}
 
 // =================== Rəng ===================
 function color(p, scale) {
   const t = Math.max(-1, Math.min(1, (p || 0) / scale));
-  const grey = [65, 69, 84], red = [246, 53, 56], green = [48, 204, 90];
+  const grey = [65, 69, 84], red = [214, 45, 48], green = [28, 150, 66];
   const target = t < 0 ? red : green, k = Math.abs(t);
   return `rgb(${grey.map((g, i) => Math.round(g + (target[i] - g) * k))})`;
 }
@@ -260,29 +430,40 @@ function squarify(items, x, y, w, h) {
 }
 
 // =================== Elementlər ===================
+const heldSet = () => new Set(portfolio.map(p => p.kind + ":" + p.id));
+function stockItem(t, sector, cap, demo) {
+  const l = live[t];
+  return { id: t, name: t, kind: "stock", sector, cap, chg: l ? l.chg : (demo ?? 0), price: l?.price, high: l?.high, low: l?.low, prev: l?.prev, nodata: !l };
+}
+function cryptoItem(c) {
+  const f = { "1h": "price_change_percentage_1h_in_currency", "24h": "price_change_percentage_24h_in_currency", "7d": "price_change_percentage_7d_in_currency", "30d": "price_change_percentage_30d_in_currency" }[prefs.period];
+  return { id: c.id, name: c.symbol.toUpperCase(), full: c.name, kind: "crypto", cap: c.market_cap / 1e9, vol: c.total_volume / 1e9,
+    chg: c[f] ?? 0, c24: c.price_change_percentage_24h_in_currency ?? 0, c7: c.price_change_percentage_7d_in_currency, c30: c.price_change_percentage_30d_in_currency,
+    price: c.current_price, high: c.high_24h, low: c.low_24h, spark: c.sparkline_in_7d?.price, rank: c.market_cap_rank };
+}
 function stockItems() {
-  return stockList.map(([t, sector, cap, demo]) => {
-    const l = live[t];
-    return { id: t, name: t, kind: "stock", sector, cap, v: prefs.size === "equal" ? 1 : cap,
-      chg: l ? l.chg : (demo ?? 0), price: l?.price, high: l?.high, low: l?.low, prev: l?.prev, nodata: !l };
-  });
+  return L.stocks.map(([t, sector, cap, demo]) => { const i = stockItem(t, sector, cap, demo); i.v = prefs.size === "equal" ? 1 : cap; return i; });
 }
 function cryptoItems() {
-  if (!cryptoData) return [];
-  const f = { "1h": "price_change_percentage_1h_in_currency", "24h": "price_change_percentage_24h_in_currency", "7d": "price_change_percentage_7d_in_currency", "30d": "price_change_percentage_30d_in_currency" }[prefs.period];
-  return cryptoData.map(c => ({ id: c.id, name: c.symbol.toUpperCase(), full: c.name, kind: "crypto", cap: c.market_cap / 1e9,
-    v: prefs.size === "equal" ? 1 : Math.max(c.market_cap / 1e9, 0.01), chg: c[f] ?? 0, price: c.current_price,
-    high: c.high_24h, low: c.low_24h, spark: c.sparkline_in_7d?.price, rank: c.market_cap_rank,
-    c24: c.price_change_percentage_24h_in_currency, c7: c.price_change_percentage_7d_in_currency, c30: c.price_change_percentage_30d_in_currency }));
+  return L.crypto.map(c => cryptoAll[c.id]).filter(Boolean).map(c => {
+    const i = cryptoItem(c);
+    i.v = prefs.size === "equal" ? 1 : prefs.size === "volume" ? Math.max(i.vol, 0.001) : Math.max(i.cap, 0.01);
+    return i;
+  });
+}
+// istənilən aktivin cari qiyməti (USD) və günlük dəyişməsi
+function quoteOf(kind, id) {
+  if (kind === "crypto") { const c = cryptoAll[id]; return c ? { price: c.current_price, chg: c.price_change_percentage_24h_in_currency ?? 0 } : null; }
+  const l = live[id]; return l ? { price: l.price, chg: l.chg } : null;
 }
 
 // =================== Xəritə ===================
 const map = $("#map"), tip = $("#tip");
 const fine = matchMedia("(pointer: fine)").matches;
 
-function tile(parent, r, scale) {
+function tile(parent, r, scale, held) {
   const d = document.createElement("div");
-  d.className = "tile" + (r.nodata && r.kind === "stock" ? " nodata" : "");
+  d.className = "tile" + (r.nodata && r.kind === "stock" ? " nodata" : "") + (held.has(r.kind + ":" + r.id) ? " held" : "");
   d.dataset.name = r.name.toLowerCase(); d.dataset.full = (r.full || "").toLowerCase();
   Object.assign(d.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px", background: color(r.chg, scale) });
   const fs = Math.max(8, Math.min(36, Math.sqrt(r.w * r.h) / 4.2));
@@ -296,11 +477,12 @@ function tile(parent, r, scale) {
 }
 
 function showTip(e, r) {
-  tip.innerHTML = `<div style="font-size:15px;font-weight:700;margin-bottom:4px">${esc(r.name)} <span style="color:#8b93a1;font-weight:400;font-size:12px">${esc(r.full || r.sector || "")}</span></div>` +
-    `<div class="row">Qiymət <b>${fmtPrice(r.price)}</b></div>` +
-    `<div class="row">Dəyişmə <b style="color:${r.chg >= 0 ? "var(--up)" : "var(--down)"}">${pct(r.chg)}</b></div>` +
+  tip.innerHTML = `<div style="font-size:15px;font-weight:700;margin-bottom:4px">${esc(r.name)} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(r.full || r.sector || "")}</span></div>` +
+    `<div class="row">Qiymət <b>${money(r.price)}</b></div>` +
+    `<div class="row">Dəyişmə <b class="${cls(r.chg)}">${pct(r.chg)}</b></div>` +
     `<div class="row">Bazar dəyəri <b>${fmtCap(r.cap)}</b></div>` +
-    (r.nodata && r.kind === "stock" ? `<div class="row" style="color:#d29922">Demo data (canlı deyil)</div>` : "");
+    (r.vol != null ? `<div class="row">24s həcm <b>${fmtCap(r.vol)}</b></div>` : "") +
+    (r.nodata && r.kind === "stock" ? `<div class="row" style="color:var(--warn)">Demo data (canlı deyil)</div>` : "");
   tip.style.display = "block";
   tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px";
   tip.style.top = Math.min(e.clientY + 14, innerHeight - tip.offsetHeight - 8) + "px";
@@ -312,7 +494,7 @@ function renderMap() {
   const top = map.getBoundingClientRect().top + scrollY;
   const H = Math.max(innerHeight - top - 12, W < 700 ? W * 1.55 : 420);
   map.style.height = H + "px";
-  const scale = colorScale();
+  const scale = colorScale(), held = heldSet();
   if (view === "stocks") {
     currentItems = stockItems();
     const groups = {};
@@ -324,26 +506,70 @@ function renderMap() {
       Object.assign(box.style, { left: s.x + "px", top: s.y + "px", width: s.w + "px", height: s.h + "px" });
       const t = document.createElement("div"); t.className = "sector-title"; t.textContent = s.name; box.appendChild(t);
       map.appendChild(box);
-      squarify(s.items, 0, 16, s.w - 2, s.h - 18).forEach(r => tile(box, r, scale));
+      squarify(s.items, 0, 16, s.w - 2, s.h - 18).forEach(r => tile(box, r, scale, held));
     });
   } else {
     currentItems = cryptoItems();
-    if (!cryptoData) { map.innerHTML = `<p style="padding:20px;color:#8b93a1">${cryptoErr || "Yüklənir…"}</p>`; }
-    squarify(currentItems, 0, 0, W, H).forEach(r => tile(map, r, scale));
+    squarify(currentItems, 0, 0, W, H).forEach(r => tile(map, r, scale, held));
   }
-  renderMovers(); applySearch();
+  if (!currentItems.length) {
+    const p = document.createElement("p"); p.className = "empty"; p.style.padding = "20px";
+    p.textContent = view === "crypto" && !cryptoLoaded ? (cryptoErr || "Yüklənir…") : "Bu siyahı boşdur. Siyahım bölməsindən əlavə edin və ya yuxarıda axtarın.";
+    map.appendChild(p);
+  }
+  renderStrips(); applySearch();
 }
 
-function renderMovers() {
-  const m = $("#movers"); m.innerHTML = "";
+function chipBtn(parent, text, bg, onclick) {
+  const c = document.createElement("button"); c.className = "chip"; c.textContent = text;
+  if (bg) c.style.background = bg; else c.classList.add("plain");
+  c.onclick = onclick; parent.appendChild(c); return c;
+}
+function label(parent, text) { const s = document.createElement("span"); s.className = "lbl"; s.textContent = text; parent.appendChild(s); }
+
+function renderStrips() {
+  const sec = $("#sectors"), mv = $("#movers"), sc = colorScale();
+  sec.innerHTML = ""; mv.innerHTML = "";
+  // Sektor xülasəsi (səhmlər) və ya Qorxu/Xəsislik (kripto)
+  if (view === "stocks" && currentItems.length) {
+    label(sec, "Sektorlar:");
+    const g = {};
+    currentItems.forEach(i => { const s = (g[i.sector] ||= { w: 0, c: 0 }); s.w += i.cap || 1; s.c += (i.chg || 0) * (i.cap || 1); });
+    Object.entries(g).map(([n, s]) => [n, s.c / s.w]).sort((a, b) => b[1] - a[1])
+      .forEach(([n, c]) => chipBtn(sec, `${n} ${pct(c)}`, color(c, sc), () => { $("#q").value = ""; query = ""; highlightSector(n); }));
+  }
+  if (view === "crypto") {
+    if (fng) {
+      const box = document.createElement("span"); box.className = "fng chip plain";
+      box.innerHTML = `<span style="color:var(--muted);font-weight:400">Qorxu/Xəsislik:</span> <b>${+fng.value}</b> <span class="gauge"><i style="left:calc(${+fng.value}% - 1px)"></i></span> <span>${esc(fngText(fng.value_classification))}</span>`;
+      sec.appendChild(box);
+    }
+    const all = currentItems;
+    if (all.length) {
+      const vol = all.reduce((s, i) => s + (i.vol || 0), 0), cap = all.reduce((s, i) => s + (i.cap || 0), 0);
+      const chip = document.createElement("span"); chip.className = "chip plain"; chip.textContent = `Siyahı: ${fmtCap(cap)} dəyər · ${fmtCap(vol)} həcm`; sec.appendChild(chip);
+    }
+  }
   if (!currentItems.length) return;
   const sorted = [...currentItems].sort((a, b) => b.chg - a.chg);
-  const add = (lbl, arr) => {
-    const s = document.createElement("span"); s.className = "lbl"; s.textContent = lbl; m.appendChild(s);
-    arr.forEach(r => { const c = document.createElement("button"); c.className = "chip"; c.style.background = color(r.chg, colorScale()); c.textContent = `${r.name} ${pct(r.chg)}`; c.onclick = () => openDetail(r); m.appendChild(c); });
-  };
-  add("▲ Ən çox artan", sorted.slice(0, 5));
-  add("▼ Ən çox düşən", sorted.slice(-5).reverse());
+  label(mv, "▲ Artan");
+  sorted.slice(0, 5).forEach(r => chipBtn(mv, `${r.name} ${pct(r.chg)}`, color(r.chg, sc), () => openDetail(r)));
+  label(mv, "▼ Düşən");
+  sorted.slice(-5).reverse().forEach(r => chipBtn(mv, `${r.name} ${pct(r.chg)}`, color(r.chg, sc), () => openDetail(r)));
+  if (view === "crypto") {
+    label(mv, "🔥 Ən həcmli");
+    [...currentItems].sort((a, b) => (b.vol || 0) - (a.vol || 0)).slice(0, 5).forEach(r => chipBtn(mv, `${r.name} ${fmtCap(r.vol)}`, null, () => openDetail(r)));
+  }
+}
+function fngText(c) {
+  return ({ "Extreme Fear": "Həddən artıq qorxu", "Fear": "Qorxu", "Neutral": "Neytral", "Greed": "Xəsislik", "Extreme Greed": "Həddən artıq xəsislik" })[c] || c;
+}
+function highlightSector(n) {
+  map.querySelectorAll(".sector").forEach(s => {
+    const on = s.querySelector(".sector-title").textContent === n;
+    s.querySelectorAll(".tile").forEach(t => { t.classList.toggle("dim", !on); t.classList.remove("hit"); });
+  });
+  setTimeout(() => map.querySelectorAll(".tile").forEach(t => t.classList.remove("dim")), 4000);
 }
 
 function applySearch() {
@@ -355,14 +581,14 @@ function applySearch() {
   });
   updateHint();
 }
-
 function updateHint() {
   const h = $("#hint"), q = query.trim();
   h.innerHTML = "";
-  if (q && (view === "stocks" || view === "crypto")) {
-    const found = currentItems.some(i => i.name.toLowerCase().startsWith(q.toLowerCase()) || (i.full || "").toLowerCase().includes(q.toLowerCase()));
+  if (q) {
+    const ql = q.toLowerCase();
+    const found = currentItems.some(i => i.name.toLowerCase().startsWith(ql) || (i.full || "").toLowerCase().includes(ql));
     if (!found) {
-      h.append(`"${q}" siyahıda yoxdur. `);
+      h.append(`"${q}" bu siyahıda yoxdur. `);
       const a = document.createElement("a"); a.textContent = "Siyahıya əlavə et →";
       a.onclick = () => { if (view === "stocks") { $("#stockIn").value = q.toUpperCase(); switchView("list"); addStock(); } else { $("#cryptoIn").value = q; switchView("list"); addCrypto(); } };
       h.appendChild(a);
@@ -376,67 +602,111 @@ function updateHint() {
 }
 
 // =================== Detal paneli ===================
-function sparkSVG(arr, up) {
+function sparkSVG(arr) {
   if (!arr || arr.length < 2) return "";
   const mn = Math.min(...arr), mx = Math.max(...arr), n = arr.length;
   const pts = arr.map((v, i) => `${(i / (n - 1) * 300).toFixed(1)},${(66 - (v - mn) / (mx - mn || 1) * 60).toFixed(1)}`).join(" ");
-  const c = up ? "#4ade80" : "#f87171";
-  return `<svg viewBox="0 0 300 70" preserveAspectRatio="none"><polygon points="0,70 ${pts} 300,70" fill="${c}" opacity=".12"/><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><div style="font-size:11px;color:#8b93a1;margin-top:-6px">Son 7 gün</div>`;
+  const c = arr[n - 1] >= arr[0] ? "var(--up)" : "var(--down)";
+  return `<svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none"><polygon points="0,70 ${pts} 300,70" fill="${c}" opacity=".12"/><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><div class="note" style="margin-top:0">Son 7 gün</div>`;
 }
 
+let detailItem = null;
 function openDetail(r) {
+  detailItem = r;
   const tv = r.kind === "stock" ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(r.name.replace("-", "."))}` : `https://www.tradingview.com/chart/?symbol=${encodeURIComponent("BINANCE:" + r.name + "USDT")}`;
-  const col = r.chg >= 0 ? "var(--up)" : "var(--down)";
   let rows = `<div class="row">Bazar dəyəri <b>${fmtCap(r.cap)}</b></div>`;
-  if (r.high != null) rows += `<div class="row">Gün ərzində (aşağı – yuxarı) <b>${fmtPrice(r.low)} – ${fmtPrice(r.high)}</b></div>`;
-  if (r.prev != null) rows += `<div class="row">Əvvəlki bağlanış <b>${fmtPrice(r.prev)}</b></div>`;
-  if (r.kind === "crypto") rows += `<div class="row">24 saat / 7 gün / 30 gün <b><span style="color:${(r.c24||0)>=0?"var(--up)":"var(--down)"}">${pct(r.c24)}</span> · <span style="color:${(r.c7||0)>=0?"var(--up)":"var(--down)"}">${pct(r.c7)}</span> · <span style="color:${(r.c30||0)>=0?"var(--up)":"var(--down)"}">${pct(r.c30)}</span></b></div>` + (r.rank ? `<div class="row">Reytinq <b>#${r.rank}</b></div>` : "");
-  else rows += `<div class="row">Sektor <b>${esc(r.sector)}</b></div>`;
+  if (r.high != null) rows += `<div class="row">Gün ərzində (aşağı – yuxarı) <b>${money(r.low)} – ${money(r.high)}</b></div>`;
+  if (r.prev != null) rows += `<div class="row">Əvvəlki bağlanış <b>${money(r.prev)}</b></div>`;
+  if (r.kind === "crypto") rows += `<div class="row">24 saat / 7 gün / 30 gün <b><span class="${cls(r.c24)}">${pct(r.c24)}</span> · <span class="${cls(r.c7)}">${pct(r.c7)}</span> · <span class="${cls(r.c30)}">${pct(r.c30)}</span></b></div>` + `<div class="row">24 saatlıq həcm <b>${fmtCap(r.vol)}</b></div>` + (r.rank ? `<div class="row">Reytinq <b>#${r.rank}</b></div>` : "");
+  else rows += `<div class="row">Sektor <b>${esc(r.sector || "—")}</b></div>`;
+  const h = portfolio.find(p => p.kind === r.kind && p.id === r.id);
+  if (h && r.price) rows += `<div class="row">Portfeldə <b>${h.qty} əd. · ${money(h.qty * r.price)} · <span class="${cls(r.price - h.cost)}">${moneySigned(h.qty * (r.price - h.cost))}</span></b></div>`;
+  const inList = r.kind === "stock" ? L.stocks.some(x => x[0] === r.id) : L.crypto.some(x => x.id === r.id);
   $("#sheetBody").innerHTML =
-    `<h2>${esc(r.name)} <small>${esc(r.full || "")}</small></h2>` +
-    `<div class="big">${fmtPrice(r.price)} <span style="font-size:17px;color:${col}">${pct(r.chg)}</span></div>` +
-    (r.nodata && r.kind === "stock" ? `<div style="color:#d29922;font-size:12px;margin-bottom:6px">Demo data. Canlı qiymət üçün Finnhub açarı əlavə edin.</div>` : "") +
-    (r.kind === "crypto" ? sparkSVG(r.spark, (r.spark?.at(-1) ?? 0) >= (r.spark?.[0] ?? 0)) : "") +
-    rows +
-    `<div class="btns"><a class="btn pri" href="${tv}" target="_blank" rel="noopener">📈 Qrafik (TradingView)</a><button class="btn red" id="rmBtn">Siyahıdan çıxar</button></div>`;
-  $("#rmBtn").onclick = () => { r.kind === "stock" ? removeStock(r.id) : removeCrypto(r.id); closeSheet(); };
+    `<div class="ttl">${esc(r.name)} <small>${esc(r.full || "")}</small></div>` +
+    `<div class="big">${money(r.price)} <span style="font-size:17px" class="${cls(r.chg)}">${pct(r.chg)}</span></div>` +
+    (r.nodata && r.kind === "stock" ? `<div style="color:var(--warn);font-size:12px;margin-bottom:6px">Demo data. Canlı qiymət üçün Finnhub açarı əlavə edin.</div>` : "") +
+    (r.kind === "crypto" ? sparkSVG(r.spark) : "") + rows +
+    `<div class="btns">
+      <a class="btn pri" href="${tv}" target="_blank" rel="noopener">📈 Qrafik</a>
+      <button class="btn" id="dPf">💼 Portfelə</button>
+      <button class="btn" id="dAl">🔔 Xəbərdarlıq</button>
+      ${r.kind === "crypto" ? `<button class="btn" id="dCmp">📊 Müqayisə</button>` : ""}
+      ${inList ? `<button class="btn red" id="dRm">Siyahıdan çıxar</button>` : ""}
+    </div>
+    <div class="news"><h3>📰 Son xəbərlər</h3><div id="newsBox" class="note">Yüklənir…</div></div>`;
+  $("#dPf").onclick = () => { closeSheet(); switchView("portfolio"); $("#pfKind").value = r.kind; $("#pfSym").value = r.name; $("#pfQty").focus(); };
+  $("#dAl").onclick = () => { closeSheet(); switchView("portfolio"); $("#alKind").value = r.kind; $("#alSym").value = r.name; $("#alType").value = "below"; $("#alVal").value = r.price ? +(r.price * RATES[prefs.cur] * 0.95).toPrecision(5) : ""; $("#alVal").focus(); };
+  if ($("#dCmp")) $("#dCmp").onclick = () => { closeSheet(); cmpSel[0] = r.id; switchView("compare"); };
+  if ($("#dRm")) $("#dRm").onclick = () => { r.kind === "stock" ? removeStock(r.id) : removeCrypto(r.id); closeSheet(); };
   $("#sheet").classList.add("open");
+  loadNews(r);
 }
-function closeSheet() { $("#sheet").classList.remove("open"); }
+function closeSheet() { $("#sheet").classList.remove("open"); detailItem = null; }
 $("#sheetClose").onclick = closeSheet;
 addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 
+// =================== Xəbərlər (Finnhub) ===================
+const newsCache = {};
+async function loadNews(r) {
+  const box = () => $("#newsBox");
+  if (!getKey()) { box().innerHTML = `Xəbərlər üçün Finnhub açarı lazımdır (Siyahım bölməsi).`; return; }
+  const key = r.kind + ":" + r.id;
+  try {
+    let items = newsCache[key];
+    if (!items) {
+      if (r.kind === "stock") {
+        items = await finnhub(`company-news?symbol=${encodeURIComponent(r.id.replace("-", "."))}&from=${ymd(new Date(Date.now() - 7 * 864e5))}&to=${ymd(new Date())}`);
+      } else {
+        const all = newsCache.cryptoGeneral ||= await finnhub("news?category=crypto");
+        const words = [r.name, r.full].filter(Boolean).map(w => w.toLowerCase());
+        items = all.filter(n => words.some(w => (n.headline + " " + n.summary + " " + (n.related || "")).toLowerCase().includes(w)));
+        if (!items.length) items = all.map(n => ({ ...n, general: true }));
+      }
+      newsCache[key] = items;
+    }
+    if (detailItem !== r) return;
+    const list = (items || []).filter(n => safeUrl(n.url)).slice(0, 6);
+    if (!list.length) { box().textContent = "Son 7 gündə xəbər tapılmadı."; return; }
+    box().innerHTML = (list[0].general ? `<div class="note" style="margin:0 0 4px">Bu koin haqqında xüsusi xəbər yoxdur, ümumi kripto xəbərləri:</div>` : "") +
+      list.map(n => `<a href="${esc(safeUrl(n.url))}" target="_blank" rel="noopener">${esc(n.headline)}<small>${esc(n.source)} · ${fmtDT(n.datetime * 1000)}</small></a>`).join("");
+    box().classList.remove("note");
+  } catch (e) { if (detailItem === r) box().textContent = "Xəbərlər yüklənmədi: " + e.message; }
+}
+
 // =================== Kripto datası (CoinGecko) ===================
 async function loadCrypto() {
-  if (!cryptoList.length) { cryptoData = []; cryptoErr = "Kripto siyahınız boşdur. Siyahım bölməsindən əlavə edin."; if (view === "crypto") renderMap(); return; }
+  const ids = [...new Set([...L.crypto.map(c => c.id), ...portfolio.filter(p => p.kind === "crypto").map(p => p.id), ...alerts.filter(a => a.kind === "crypto").map(a => a.id), ...cmpSel.filter(Boolean)])];
+  if (!ids.length) { cryptoLoaded = true; refreshVisible(); return; }
   try {
-    const ids = cryptoList.map(c => c.id).join(",");
-    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids)}&order=market_cap_desc&per_page=250&sparkline=true&price_change_percentage=1h,24h,7d,30d`);
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.slice(0, 250).join(","))}&order=market_cap_desc&per_page=250&sparkline=true&price_change_percentage=1h,24h,7d,30d`);
     if (!res.ok) throw new Error(res.status === 429 ? "çox sorğu, bir az gözləyin" : "xəta " + res.status);
-    cryptoData = (await res.json()).filter(c => c.market_cap);
-    cryptoErr = "";
-    cryptoList.forEach(c => { const d = cryptoData.find(x => x.id === c.id); if (d) { c.sym = d.symbol.toUpperCase(); c.name = d.name; } });
-    store.set("cryptoList", cryptoList);
+    (await res.json()).forEach(c => { if (c.market_cap != null) cryptoAll[c.id] = c; });
+    cryptoErr = ""; cryptoLoaded = true;
+    let changed = false;
+    L.crypto.forEach(c => { const d = cryptoAll[c.id]; if (d && c.sym !== d.symbol.toUpperCase()) { c.sym = d.symbol.toUpperCase(); c.name = d.name; changed = true; } });
+    if (changed) saveLists();
   } catch (e) { cryptoErr = "Kripto datası yüklənmədi (" + e.message + "). 60 san. sonra yenidən."; }
-  setStatus();
-  if (view === "crypto") renderMap();
-  if (view === "list") renderLists();
+  checkAlerts();
+  refreshVisible();
+}
+async function loadFng() {
+  try { const r = await (await fetch("https://api.alternative.me/fng/?limit=1")).json(); fng = r.data?.[0] || null; if (view === "crypto") renderStrips(); } catch {}
 }
 
 // =================== Səhm datası (Finnhub) ===================
 async function finnhub(path) {
   const res = await fetch(`https://finnhub.io/api/v1/${path}${path.includes("?") ? "&" : "?"}token=${encodeURIComponent(getKey())}`);
-  if (res.status === 401 || res.status === 403) throw Object.assign(new Error("Açar qəbul olunmadı"), { code: "auth" });
-  if (res.status === 429) throw Object.assign(new Error("Limit doldu"), { code: "limit" });
+  if (res.status === 401 || res.status === 403) throw Object.assign(new Error("Açar qəbul olunmadı və ya bu data pulsuz planda yoxdur"), { code: "auth" });
+  if (res.status === 429) throw Object.assign(new Error("Limit doldu, bir az gözləyin"), { code: "limit" });
   if (!res.ok) throw new Error("xəta " + res.status);
   return res.json();
 }
-
 async function loadStocks() {
   const run = ++stockRun;
   if (!getKey()) { stockMsg = "Səhmlər: demo data"; setStatus(); return; }
   while (run === stockRun) {
-    const tickers = stockList.map(x => x[0]);
+    const tickers = [...new Set([...portfolio.filter(p => p.kind === "stock").map(p => p.id), ...alerts.filter(a => a.kind === "stock").map(a => a.id), ...L.stocks.map(x => x[0])])];
     let ok = 0;
     for (let i = 0; i < tickers.length && run === stockRun; i++) {
       const t = tickers[i];
@@ -448,100 +718,299 @@ async function loadStocks() {
         if (e.code === "limit") { stockMsg = "Limit doldu, gözlənilir…"; setStatus(); await sleep(15000); i--; continue; }
       }
       stockMsg = `Canlı (Finnhub): ${i + 1}/${tickers.length}`;
-      if (view === "stocks") { setStatus(); if ((i + 1) % 10 === 0 || i === tickers.length - 1) renderMap(); }
+      if ((i + 1) % 10 === 0 || i === tickers.length - 1) { checkAlerts(); refreshVisible(); } else if (view === "stocks") setStatus();
       await sleep(1100);   // pulsuz plan: dəqiqədə 60 sorğu
     }
-    stockMsg = `Canlı (Finnhub) · ${ok} səhm · ${new Date().toLocaleTimeString("az")}`;
-    if (view === "stocks") { setStatus(); renderMap(); }
+    stockMsg = `Canlı (Finnhub) · ${ok} səhm · ${fmtTime(Date.now())}`;
+    checkAlerts(); refreshVisible();
   }
 }
 
-// =================== Siyahı idarəsi ===================
-function saveStocks() { store.set("stockList", stockList); }
-function saveCrypto() { store.set("cryptoList", cryptoList); }
-function removeStock(t) { stockList = stockList.filter(x => x[0] !== t); delete live[t]; saveStocks(); refreshAll(); }
-function removeCrypto(id) { cryptoList = cryptoList.filter(c => c.id !== id); if (cryptoData) cryptoData = cryptoData.filter(c => c.id !== id); saveCrypto(); refreshAll(); }
+// =================== Kripto axtarışı ===================
+async function resolveCrypto(q) {
+  const ql = q.trim().toLowerCase();
+  const local = Object.values(cryptoAll).find(c => c.symbol.toLowerCase() === ql) || Object.values(cryptoAll).find(c => c.name.toLowerCase() === ql || c.id === ql);
+  if (local) return { id: local.id, sym: local.symbol.toUpperCase(), name: local.name };
+  const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
+  if (!res.ok) throw new Error("axtarış xətası " + res.status);
+  const coins = (await res.json()).coins || [];
+  const c = coins.find(x => x.symbol.toLowerCase() === ql) || coins[0];
+  return c ? { id: c.id, sym: c.symbol.toUpperCase(), name: c.name } : null;
+}
+const cleanTicker = s => s.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, "");
+function setMsg(el, text, kind) { el.textContent = text; el.style.color = kind === "ok" ? "var(--up)" : kind === "err" ? "var(--down)" : kind === "warn" ? "var(--warn)" : "var(--muted)"; }
+
+// =================== Portfel ===================
+const PALETTE = ["#58a6ff", "#f0b429", "#c084fc", "#34d399", "#fb7185", "#38bdf8", "#facc15", "#a3e635", "#f97316", "#94a3b8"];
+$("#pfForm").onsubmit = async e => {
+  e.preventDefault();
+  const msg = $("#pfMsg"), kind = $("#pfKind").value, sym = $("#pfSym").value.trim();
+  const qty = parseFloat($("#pfQty").value), costLocal = parseFloat($("#pfCost").value);
+  if (!sym || !(qty > 0) || !(costLocal >= 0)) { setMsg(msg, "Simvolu, sayı və alış qiymətini yazın.", "err"); return; }
+  let id, name = sym.toUpperCase();
+  if (kind === "crypto") {
+    setMsg(msg, "Axtarılır…");
+    try { const c = await resolveCrypto(sym); if (!c) { setMsg(msg, `"${sym}" tapılmadı.`, "err"); return; } id = c.id; name = c.sym; } catch (err) { setMsg(msg, err.message, "err"); return; }
+  } else { id = cleanTicker(sym); name = id; }
+  const cost = costLocal / RATES[prefs.cur];
+  const ex = portfolio.find(p => p.kind === kind && p.id === id);
+  if (ex) { ex.cost = (ex.cost * ex.qty + cost * qty) / (ex.qty + qty); ex.qty += qty; setMsg(msg, `${name}: say artırıldı, orta alış qiyməti yeniləndi.`, "ok"); }
+  else { portfolio.push({ kind, id, sym: name, qty, cost }); setMsg(msg, `${name} portfelə əlavə olundu.`, "ok"); }
+  savePortfolio();
+  $("#pfSym").value = $("#pfQty").value = $("#pfCost").value = "";
+  renderPortfolio();
+  if (kind === "crypto" && !cryptoAll[id]) loadCrypto();
+  if (kind === "stock" && !live[id]) loadStocks();
+};
+function renderPortfolio() {
+  let total = 0, costSum = 0, day = 0, priced = 0;
+  const rows = portfolio.map(p => {
+    const q = quoteOf(p.kind, p.id);
+    const value = q ? p.qty * q.price : null;
+    if (value != null) { total += value; costSum += p.qty * p.cost; day += value - value / (1 + (q.chg || 0) / 100); priced++; }
+    return { p, q, value };
+  });
+  const pl = total - costSum;
+  $("#pfValue").textContent = portfolio.length ? money(total) : "—";
+  $("#pfPL").innerHTML = priced ? `<span class="${cls(pl)}">${moneySigned(pl)} <small style="font-size:13px">${costSum ? pct(pl / costSum * 100) : ""}</small></span>` : "—";
+  $("#pfDay").innerHTML = priced ? `<span class="${cls(day)}">${moneySigned(day)}</span>` : "—";
+  const sorted = rows.filter(r => r.value).sort((a, b) => b.value - a.value);
+  $("#pfAlloc").innerHTML = sorted.map((r, i) => `<i style="width:${r.value / total * 100}%;background:${PALETTE[i % PALETTE.length]}" title="${esc(r.p.sym)}"></i>`).join("");
+  $("#pfLegend").innerHTML = sorted.map((r, i) => `<span><i style="background:${PALETTE[i % PALETTE.length]}"></i>${esc(r.p.sym)} ${(r.value / total * 100).toFixed(1)}%</span>`).join("");
+  const t = $("#pfTable");
+  if (!portfolio.length) { t.innerHTML = `<tr><td class="empty" style="text-align:left">Portfel boşdur. Yuxarıdan ilk aktivinizi əlavə edin, məsələn: Kripto, BTC, 0.05, 60000.</td></tr>`; return; }
+  t.innerHTML = `<tr><th>Aktiv</th><th>Say</th><th>Alış</th><th>Qiymət</th><th>Dəyər</th><th>Qazanc/zərər</th><th>Bu gün</th><th></th></tr>` +
+    rows.map(({ p, q, value }, i) => {
+      const plv = value != null ? value - p.qty * p.cost : null;
+      return `<tr><td><b>${esc(p.sym)}</b> <span class="tag">${p.kind === "stock" ? "səhm" : "kripto"}</span></td><td>${+p.qty.toPrecision(8)}</td><td>${money(p.cost)}</td><td>${q ? money(q.price) : `<span title="Qiymət yoxdur" style="color:var(--warn)">—</span>`}</td><td>${money(value)}</td>` +
+        `<td class="${cls(plv)}">${plv != null ? moneySigned(plv) + (p.cost ? ` (${pct(plv / (p.qty * p.cost) * 100)})` : "") : "—"}</td><td class="${cls(q?.chg)}">${q ? pct(q.chg) : "—"}</td><td><button class="x" data-i="${i}" aria-label="Sil">×</button></td></tr>`;
+    }).join("");
+  t.querySelectorAll(".x").forEach(b => b.onclick = () => { portfolio.splice(+b.dataset.i, 1); savePortfolio(); renderPortfolio(); });
+}
+
+// =================== Xəbərdarlıqlar ===================
+let audioCtx = null;
+addEventListener("pointerdown", () => { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }, { once: true });
+function beep() {
+  try {
+    if (!audioCtx) return;
+    [0, 0.25].forEach(t0 => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(audioCtx.destination); g.gain.setValueAtTime(0.15, audioCtx.currentTime + t0); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t0 + 0.2); o.start(audioCtx.currentTime + t0); o.stop(audioCtx.currentTime + t0 + 0.22); });
+  } catch {}
+}
+function toast(title, text) {
+  const d = document.createElement("div"); d.className = "toast";
+  const b = document.createElement("b"); b.textContent = title; d.appendChild(b); d.append(text);
+  d.onclick = () => d.remove();
+  $("#toasts").appendChild(d); setTimeout(() => d.remove(), 12000);
+}
+function alertText(a) {
+  return a.type === "above" ? `qiymət ≥ ${money(a.value)}` : a.type === "below" ? `qiymət ≤ ${money(a.value)}` : `günlük dəyişmə ±${a.value}%`;
+}
+function checkAlerts() {
+  let fired = false;
+  alerts.forEach(a => {
+    if (a.fired) return;
+    const q = quoteOf(a.kind, a.id); if (!q || !q.price) return;
+    const hit = a.type === "above" ? q.price >= a.value : a.type === "below" ? q.price <= a.value : Math.abs(q.chg) >= a.value;
+    if (!hit) return;
+    a.fired = Date.now(); fired = true;
+    const text = `${a.sym}: ${alertText(a)}. İndi ${money(q.price)} (${pct(q.chg)})`;
+    toast("🔔 Xəbərdarlıq", text); beep();
+    try { navigator.vibrate?.([200, 100, 200]); } catch {}
+    try { if ("Notification" in window && Notification.permission === "granted") new Notification("investWEB", { body: text }); } catch {}
+  });
+  if (fired) { saveAlerts(); if (view === "portfolio") renderAlerts(); }
+}
+$("#alForm").onsubmit = async e => {
+  e.preventDefault();
+  const msg = $("#alMsg"), kind = $("#alKind").value, sym = $("#alSym").value.trim(), type = $("#alType").value, raw = parseFloat($("#alVal").value);
+  if (!sym || !(raw > 0)) { setMsg(msg, "Simvolu və dəyəri yazın.", "err"); return; }
+  let id, name;
+  if (kind === "crypto") {
+    setMsg(msg, "Axtarılır…");
+    try { const c = await resolveCrypto(sym); if (!c) { setMsg(msg, `"${sym}" tapılmadı.`, "err"); return; } id = c.id; name = c.sym; } catch (err) { setMsg(msg, err.message, "err"); return; }
+  } else { id = cleanTicker(sym); name = id; if (!getKey()) { setMsg(msg, "Səhm xəbərdarlığı üçün Finnhub açarı lazımdır.", "warn"); } }
+  const value = type === "chg" ? raw : raw / RATES[prefs.cur];
+  alerts.push({ kind, id, sym: name, type, value, fired: 0 });
+  saveAlerts();
+  $("#alSym").value = $("#alVal").value = "";
+  if (msg.style.color !== "var(--warn)") setMsg(msg, `${name} üçün xəbərdarlıq quruldu.`, "ok");
+  renderAlerts();
+  if (kind === "crypto" && !cryptoAll[id]) loadCrypto(); else checkAlerts();
+  if (kind === "stock" && getKey() && !live[id]) loadStocks();
+};
+function renderAlerts() {
+  const box = $("#alList"); box.innerHTML = "";
+  if (!alerts.length) { box.innerHTML = `<p class="empty">Xəbərdarlıq yoxdur. Məsələn: Kripto, BTC, "Qiymət ≤", 80000.</p>`; return; }
+  alerts.forEach((a, i) => {
+    const q = quoteOf(a.kind, a.id);
+    const row = document.createElement("div"); row.className = "li";
+    row.innerHTML = `<span class="t"></span><span class="s"></span>${a.fired ? `<button class="btn" style="padding:3px 8px;font-size:12px">Yenidən aktiv et</button>` : ""}<button class="x" aria-label="Sil">×</button>`;
+    row.querySelector(".t").textContent = a.sym;
+    row.querySelector(".s").textContent = `${alertText(a)} · indi ${q ? money(q.price) : "—"}` + (a.fired ? ` · ✓ ${fmtDT(a.fired)} işə düşdü` : " · gözləyir");
+    if (a.fired) row.querySelector(".btn").onclick = () => { a.fired = 0; saveAlerts(); renderAlerts(); checkAlerts(); };
+    row.querySelector(".x").onclick = () => { alerts.splice(i, 1); saveAlerts(); renderAlerts(); };
+    box.appendChild(row);
+  });
+}
+$("#notifBtn").onclick = async () => {
+  if (!("Notification" in window)) { toast("Bildiriş", "Bu brauzer bildirişləri dəstəkləmir. Səs və ekran mesajı işləyəcək."); return; }
+  const p = await Notification.requestPermission();
+  toast("Bildiriş", p === "granted" ? "İcazə verildi." : "İcazə verilmədi. Səs və ekran mesajı işləyəcək.");
+};
+
+// =================== Müqayisə ===================
+const cmpSel = store.get("cmpSel", ["bitcoin", "ethereum", "solana"]);
+const CMP_COLORS = ["#58a6ff", "#f0b429", "#c084fc"];
+const chartCache = {};
+function fillCmpSelects() {
+  const opts = [...new Map([...L.crypto.map(c => [c.id, c.sym || c.id]), ...portfolio.filter(p => p.kind === "crypto").map(p => [p.id, p.sym]), ...cmpSel.filter(Boolean).map(id => [id, cryptoAll[id]?.symbol?.toUpperCase() || id])])];
+  ["#cmpA", "#cmpB", "#cmpC"].forEach((s, i) => {
+    $(s).innerHTML = `<option value="">— seçin —</option>` + opts.map(([id, sym]) => `<option value="${esc(id)}">${esc(sym)}</option>`).join("");
+    $(s).value = cmpSel[i] || "";
+    $(s).style.borderColor = CMP_COLORS[i];
+  });
+}
+["#cmpA", "#cmpB", "#cmpC"].forEach((s, i) => $(s).onchange = e => { cmpSel[i] = e.target.value; store.set("cmpSel", cmpSel); renderCompare(); });
+$("#cmpDays").onchange = renderCompare;
+async function renderCompare() {
+  fillCmpSelects();
+  const days = $("#cmpDays").value, svg = $("#cmpChart"), leg = $("#cmpLegend");
+  const sel = cmpSel.map((id, i) => ({ id, i })).filter(x => x.id);
+  if (!sel.length) { svg.innerHTML = ""; leg.textContent = "Müqayisə üçün ən azı bir kripto seçin."; return; }
+  leg.textContent = "Yüklənir…";
+  const series = [];
+  for (const { id, i } of sel) {
+    const k = id + ":" + days;
+    try {
+      if (!chartCache[k]) {
+        const r = await fetch(`https://api.coingecko.com/api/v3/coins/${encodeURIComponent(id)}/market_chart?vs_currency=usd&days=${days}`);
+        if (!r.ok) throw new Error(r.status === 429 ? "çox sorğu, bir az sonra yenidən" : "xəta " + r.status);
+        chartCache[k] = (await r.json()).prices;
+      }
+      const p = chartCache[k]; if (!p?.length) continue;
+      series.push({ id, i, pts: p.map(([t, v]) => [t, (v / p[0][1] - 1) * 100]) });
+    } catch (e) { leg.textContent = "Qrafik yüklənmədi: " + e.message; return; }
+  }
+  if (!series.length) { svg.innerHTML = ""; return; }
+  const W = 800, H = 320, pl = 52, pr = 12, pt = 12, pb = 28;
+  const t0 = Math.min(...series.map(s => s.pts[0][0])), t1 = Math.max(...series.map(s => s.pts.at(-1)[0]));
+  let y0 = Math.min(0, ...series.flatMap(s => s.pts.map(p => p[1]))), y1 = Math.max(0, ...series.flatMap(s => s.pts.map(p => p[1])));
+  const pad = (y1 - y0) * 0.08 || 1; y0 -= pad; y1 += pad;
+  const X = t => pl + (t - t0) / (t1 - t0 || 1) * (W - pl - pr), Y = v => pt + (y1 - v) / (y1 - y0) * (H - pt - pb);
+  const step = niceStep((y1 - y0) / 5);
+  let g = "";
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) g += `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" ${Math.abs(v) < step / 2 ? 'stroke-width="1.5" style="stroke:var(--muted)"' : ""}/><text x="${pl - 6}" y="${Y(v) + 4}" text-anchor="end">${(v > 0 ? "+" : "") + +v.toFixed(1)}%</text>`;
+  const fmtD = fmtDay;
+  for (let k = 0; k <= 4; k++) { const t = t0 + (t1 - t0) * k / 4; g += `<text x="${X(t)}" y="${H - 8}" text-anchor="${k === 0 ? "start" : k === 4 ? "end" : "middle"}">${fmtD(t)}</text>`; }
+  series.forEach(s => {
+    const d = s.pts.map(([t, v], j) => `${j ? "L" : "M"}${X(t).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    const [lt, lv] = s.pts.at(-1);
+    g += `<path d="${d}" fill="none" stroke="${CMP_COLORS[s.i]}" stroke-width="2"/><circle cx="${X(lt)}" cy="${Y(lv)}" r="3.5" fill="${CMP_COLORS[s.i]}"/>`;
+  });
+  svg.innerHTML = g;
+  leg.innerHTML = series.map(s => `<span><i style="background:${CMP_COLORS[s.i]}"></i><b>${esc(cryptoAll[s.id]?.symbol?.toUpperCase() || s.id)}</b> <span class="${cls(s.pts.at(-1)[1])}">${pct(s.pts.at(-1)[1])}</span></span>`).join("");
+}
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / p; return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * p; }
+
+// =================== Siyahılar ===================
+function removeStock(t) { L.stocks = L.stocks.filter(x => x[0] !== t); saveLists(); refreshAll(); }
+function removeCrypto(id) { L.crypto = L.crypto.filter(c => c.id !== id); saveLists(); refreshAll(); }
+function fillListSelects() {
+  const html = Object.keys(lists.data).map(n => `<option value="${esc(n)}">Siyahı: ${esc(n)}</option>`).join("");
+  $("#listSel").innerHTML = html; $("#listSel2").innerHTML = html;
+  $("#listSel").value = $("#listSel2").value = lists.active;
+}
+function setActiveList(n) {
+  if (!lists.data[n]) return;
+  lists.active = n; L = lists.data[n]; saveLists();
+  fillListSelects(); refreshAll(); loadCrypto();
+}
+$("#listSel").onchange = e => setActiveList(e.target.value);
+$("#listSel2").onchange = e => setActiveList(e.target.value);
+$("#newListBtn").onclick = () => {
+  const n = $("#newListName").value.trim().slice(0, 30), msg = $("#listMsg");
+  if (!n) { setMsg(msg, "Siyahının adını yazın.", "err"); return; }
+  if (lists.data[n]) { setMsg(msg, "Bu adda siyahı artıq var.", "warn"); return; }
+  lists.data[n] = { stocks: [], crypto: [] };
+  $("#newListName").value = "";
+  setMsg(msg, `"${n}" yaradıldı. İndi ona səhm və kripto əlavə edin.`, "ok");
+  setActiveList(n);
+};
+twoStep($("#delListBtn"), "Bu siyahını sil", () => {
+  const msg = $("#listMsg");
+  if (Object.keys(lists.data).length < 2) { setMsg(msg, "Ən azı bir siyahı qalmalıdır.", "warn"); return; }
+  const old = lists.active; delete lists.data[old];
+  setMsg(msg, `"${old}" silindi.`, "ok");
+  setActiveList(Object.keys(lists.data)[0]);
+});
 
 function fillSectorSelect() {
-  const secs = [...new Set([...DEFAULT_STOCKS.map(x => x[1]), ...stockList.map(x => x[1])])];
+  const secs = [...new Set([...DEFAULT_STOCKS.map(x => x[1]), ...L.stocks.map(x => x[1])])];
   $("#stockSector").innerHTML = `<option value="">Sektor: avtomatik</option>` + secs.map(s => `<option>${esc(s)}</option>`).join("") + `<option>DİGƏR</option>`;
 }
-
 async function addStock() {
-  const msg = $("#stockMsg");
-  const t = $("#stockIn").value.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, "");
+  const msg = $("#stockMsg"), t = cleanTicker($("#stockIn").value);
   if (!t) return;
-  if (stockList.some(x => x[0] === t)) { msg.style.color = "#d29922"; msg.textContent = `${t} artıq siyahıdadır.`; return; }
+  if (L.stocks.some(x => x[0] === t)) { setMsg(msg, `${t} artıq siyahıdadır.`, "warn"); return; }
   let sector = $("#stockSector").value, cap = 50;
   if (getKey()) {
-    msg.style.color = "var(--muted)"; msg.textContent = "Yoxlanılır…";
+    setMsg(msg, "Yoxlanılır…");
     try {
       const p = await finnhub(`stock/profile2?symbol=${encodeURIComponent(t.replace("-", "."))}`);
-      if (!p || !p.ticker) { msg.style.color = "var(--down)"; msg.textContent = `${t} tapılmadı. Ticker-i yoxlayın (yalnız ABŞ birjaları).`; return; }
+      if (!p || !p.ticker) { setMsg(msg, `${t} tapılmadı. Ticker-i yoxlayın (ABŞ birjaları).`, "err"); return; }
       cap = (p.marketCapitalization || 50000) / 1000;
       if (!sector) { const ind = (p.finnhubIndustry || "").toLowerCase(); sector = SECTOR_MAP[ind] || (p.finnhubIndustry || "DİGƏR").toUpperCase(); }
-    } catch (e) { msg.style.color = "var(--down)"; msg.textContent = e.message; return; }
+    } catch (e) { setMsg(msg, e.message, "err"); return; }
   }
-  stockList.push([t, sector || "DİGƏR", cap, null]);
-  saveStocks();
+  L.stocks.push([t, sector || "DİGƏR", cap, null]);
+  saveLists();
   $("#stockIn").value = "";
-  msg.style.color = "var(--up)"; msg.textContent = `${t} əlavə olundu.` + (getKey() ? "" : " (Açar olmadan qiymət görünməyəcək.)");
+  setMsg(msg, `${t} əlavə olundu.` + (getKey() ? "" : " Açar olmadan qiymət görünməyəcək."), "ok");
   refreshAll();
 }
-
 async function addCrypto() {
   const msg = $("#cryptoMsg"), q = $("#cryptoIn").value.trim();
   if (!q) return;
-  msg.style.color = "var(--muted)"; msg.textContent = "Axtarılır…";
+  setMsg(msg, "Axtarılır…");
   try {
-    const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
-    if (!res.ok) throw new Error("xəta " + res.status);
-    const coins = (await res.json()).coins || [];
-    const c = coins.find(x => x.symbol.toLowerCase() === q.toLowerCase()) || coins[0];
-    if (!c) { msg.style.color = "var(--down)"; msg.textContent = `"${q}" tapılmadı.`; return; }
-    if (cryptoList.some(x => x.id === c.id)) { msg.style.color = "#d29922"; msg.textContent = `${c.symbol} artıq siyahıdadır.`; return; }
-    cryptoList.push({ id: c.id, sym: c.symbol.toUpperCase(), name: c.name });
-    saveCrypto();
+    const c = await resolveCrypto(q);
+    if (!c) { setMsg(msg, `"${q}" tapılmadı.`, "err"); return; }
+    if (L.crypto.some(x => x.id === c.id)) { setMsg(msg, `${c.sym} artıq siyahıdadır.`, "warn"); return; }
+    L.crypto.push(c); saveLists();
     $("#cryptoIn").value = "";
-    msg.style.color = "var(--up)"; msg.textContent = `${c.name} (${c.symbol.toUpperCase()}) əlavə olundu.`;
+    setMsg(msg, `${c.name} (${c.sym}) əlavə olundu.`, "ok");
     renderLists(); loadCrypto();
-  } catch (e) { msg.style.color = "var(--down)"; msg.textContent = "Axtarış alınmadı: " + e.message; }
+  } catch (e) { setMsg(msg, "Axtarış alınmadı: " + e.message, "err"); }
 }
-
 function renderLists() {
-  $("#stockCount").textContent = stockList.length;
-  $("#cryptoCount").textContent = cryptoList.length;
-  const sl = $("#stockList"); sl.innerHTML = "";
-  [...stockList].sort((a, b) => a[1].localeCompare(b[1]) || b[2] - a[2]).forEach(([t, sec]) => {
-    const row = document.createElement("div"); row.className = "li";
-    row.innerHTML = `<span class="t"></span><span class="s"></span><button aria-label="Çıxar">×</button>`;
-    row.querySelector(".t").textContent = t; row.querySelector(".s").textContent = sec;
-    row.querySelector("button").onclick = () => removeStock(t);
-    sl.appendChild(row);
-  });
-  const cl = $("#cryptoList"); cl.innerHTML = "";
-  cryptoList.forEach(c => {
-    const row = document.createElement("div"); row.className = "li";
-    row.innerHTML = `<span class="t"></span><span class="s"></span><button aria-label="Çıxar">×</button>`;
-    row.querySelector(".t").textContent = c.sym || c.id; row.querySelector(".s").textContent = c.name || c.id;
-    row.querySelector("button").onclick = () => removeCrypto(c.id);
-    cl.appendChild(row);
-  });
+  fillListSelects();
+  $("#stockCount").textContent = L.stocks.length;
+  $("#cryptoCount").textContent = L.crypto.length;
+  const mk = (box, items) => {
+    box.innerHTML = "";
+    if (!items.length) { box.innerHTML = `<p class="empty">Boşdur.</p>`; return; }
+    items.forEach(([t, s, rm]) => {
+      const row = document.createElement("div"); row.className = "li";
+      row.innerHTML = `<span class="t"></span><span class="s"></span><button class="x" aria-label="Çıxar">×</button>`;
+      row.querySelector(".t").textContent = t; row.querySelector(".s").textContent = s;
+      row.querySelector("button").onclick = rm; box.appendChild(row);
+    });
+  };
+  mk($("#stockList"), [...L.stocks].sort((a, b) => a[1].localeCompare(b[1]) || b[2] - a[2]).map(([t, sec]) => [t, sec, () => removeStock(t)]));
+  mk($("#cryptoList"), L.crypto.map(c => [c.sym || c.id, c.name || c.id, () => removeCrypto(c.id)]));
   fillSectorSelect();
-  $("#keyMsg").textContent = getKey() ? "✓ Açar saxlanılıb." : "Açar yoxdur: səhmlər demo datadır.";
-  $("#keyMsg").style.color = getKey() ? "var(--up)" : "var(--muted)";
+  setMsg($("#keyMsg"), getKey() ? "✓ Açar saxlanılıb." : "Açar yoxdur: səhmlər demo datadır.", getKey() ? "ok" : "");
 }
-
-function twoStep(btn, label, action) {
+function twoStep(btn, labelText, action) {
   btn.onclick = () => {
-    if (btn.dataset.armed) { action(); btn.textContent = label; delete btn.dataset.armed; return; }
+    if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = labelText; action(); return; }
     btn.dataset.armed = 1; btn.textContent = "Əminsiniz? Yenidən basın";
-    setTimeout(() => { btn.textContent = label; delete btn.dataset.armed; }, 3000);
+    setTimeout(() => { if (btn.dataset.armed) { btn.textContent = labelText; delete btn.dataset.armed; } }, 3000);
   };
 }
-twoStep($("#resetStocks"), "Standart siyahını qaytar", () => { stockList = DEFAULT_STOCKS.map(x => [...x]); saveStocks(); refreshAll(); });
-twoStep($("#resetCrypto"), "Standart siyahını qaytar", () => { cryptoList = DEFAULT_CRYPTO.map(id => ({ id })); saveCrypto(); renderLists(); loadCrypto(); });
-
+twoStep($("#resetStocks"), "Standart səhmləri qaytar", () => { L.stocks = defaultList().stocks; saveLists(); refreshAll(); });
+twoStep($("#resetCrypto"), "Standart kriptoları qaytar", () => { L.crypto = defaultList().crypto; saveLists(); renderLists(); loadCrypto(); });
 $("#addStock").onsubmit = e => { e.preventDefault(); addStock(); };
 $("#addCrypto").onsubmit = e => { e.preventDefault(); addCrypto(); };
 $("#keyForm").onsubmit = e => {
@@ -552,19 +1021,41 @@ $("#keyForm").onsubmit = e => {
 };
 $("#keyDel").onclick = () => { try { localStorage.removeItem("finnhubKey"); } catch {} Object.keys(live).forEach(k => delete live[k]); stockRun++; renderLists(); loadStocks(); };
 
+// =================== İxrac / idxal ===================
+$("#expBtn").onclick = async () => {
+  const data = { v: 1, lists, portfolio, alerts, prefs: { ...prefs }, cmpSel };
+  const code = "IW1:" + btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  const box = $("#expBox"); box.value = code;
+  try { await navigator.clipboard.writeText(code); setMsg($("#expMsg"), "Kod kopyalandı. Digər cihazda bu bölməyə yapışdırıb \"Yüklə\" basın.", "ok"); }
+  catch { box.select(); setMsg($("#expMsg"), "Kod yaradıldı. Seçib kopyalayın.", "ok"); }
+};
+$("#impBtn").onclick = () => {
+  const raw = $("#expBox").value.trim(), msg = $("#expMsg");
+  try {
+    if (!raw.startsWith("IW1:")) throw new Error("bu investWEB kodu deyil");
+    const d = JSON.parse(decodeURIComponent(escape(atob(raw.slice(4)))));
+    if (!d.lists?.data || !Array.isArray(d.portfolio) || !Array.isArray(d.alerts)) throw new Error("kod natamamdır");
+    store.set("lists", d.lists); store.set("portfolio", d.portfolio); store.set("alerts", d.alerts);
+    if (d.prefs) store.set("prefs", d.prefs);
+    if (d.cmpSel) store.set("cmpSel", d.cmpSel);
+    setMsg(msg, "Yükləndi. Səhifə yenilənir…", "ok");
+    setTimeout(() => location.reload(), 600);
+  } catch (e) { setMsg(msg, "Kod yüklənmədi: " + e.message, "err"); }
+};
+
 // =================== Təqvim ===================
 const HOURS = { bmo: "Açılışdan əvvəl", amc: "Bağlanışdan sonra", dmh: "Gün ərzində" };
 async function renderCalendar() {
   const earn = $("#calEarn"), ipo = $("#calIpo");
   if (!getKey()) {
-    const m = `<p class="empty">Təqvim üçün Finnhub açarı lazımdır. <a style="color:#58a6ff;cursor:pointer" onclick="switchView('list')">Siyahım → açar əlavə et</a></p>`;
+    const m = `<p class="empty">Təqvim üçün Finnhub açarı lazımdır. <a style="cursor:pointer" onclick="switchView('list')">Siyahım → açar əlavə et</a></p>`;
     earn.innerHTML = m; ipo.innerHTML = m; return;
   }
   earn.innerHTML = ipo.innerHTML = `<p class="empty">Yüklənir…</p>`;
   const from = new Date(), to = new Date(Date.now() + +$("#calRange").value * 864e5);
   const range = `from=${ymd(from)}&to=${ymd(to)}`;
-  const mine = new Set(stockList.map(x => x[0].replace("-", ".")));
-  const dayName = d => new Date(d + "T12:00:00").toLocaleDateString("az", { weekday: "long", day: "numeric", month: "long" });
+  const mine = new Set([...L.stocks.map(x => x[0]), ...portfolio.filter(p => p.kind === "stock").map(p => p.id)].map(t => t.replace("-", ".")));
+  const dayName = d => { const x = new Date(d + "T12:00:00"); return `${HEFTE[x.getDay()]}, ${x.getDate()} ${AY_UZUN[x.getMonth()]}`; };
   try {
     const e = await finnhub(`calendar/earnings?${range}`);
     let rows = e.earningsCalendar || [];
@@ -588,29 +1079,32 @@ $("#calMine").onchange = renderCalendar;
 
 // =================== Görünüş ===================
 function setStatus() {
-  const s = $("#status");
-  s.textContent = view === "stocks" ? stockMsg : view === "crypto" ? (cryptoErr || (cryptoData ? `Canlı (CoinGecko) · ${cryptoData.length} koin · hər 60 san.` : "Yüklənir…")) : "";
+  $("#status").textContent = view === "stocks" ? stockMsg : view === "crypto" ? (cryptoErr || (cryptoLoaded ? `Canlı (CoinGecko) · hər 60 san.` : "Yüklənir…")) : "";
 }
-
 function switchView(v) {
   view = v;
   document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
   const isMap = v === "stocks" || v === "crypto";
-  $("#mapView").hidden = !isMap; $("#calView").hidden = v !== "calendar"; $("#listView").hidden = v !== "list";
-  $("#searchBox").hidden = !isMap;
-  $("#mapCtl").hidden = !isMap;
+  $("#mapView").hidden = !isMap;
+  $("#portfolioView").hidden = v !== "portfolio"; $("#compareView").hidden = v !== "compare";
+  $("#calView").hidden = v !== "calendar"; $("#listView").hidden = v !== "list";
+  $("#searchBox").hidden = !isMap; $("#size").hidden = !isMap;
+  $("#listSel").hidden = !(isMap || v === "list");
   $("#period").hidden = v !== "crypto";
+  $("#size").querySelector('[value="volume"]').hidden = v !== "crypto";
   closeSheet(); setStatus();
   if (isMap) renderMap();
+  if (v === "portfolio") { renderPortfolio(); renderAlerts(); }
+  if (v === "compare") renderCompare();
   if (v === "calendar") renderCalendar();
   if (v === "list") renderLists();
 }
-
-function refreshAll() {
-  renderLists();
+function refreshVisible() {
+  setStatus();
   if (view === "stocks" || view === "crypto") renderMap();
-  loadStocks();
+  if (view === "portfolio") { renderPortfolio(); renderAlerts(); }
 }
+function refreshAll() { renderLists(); refreshVisible(); loadStocks(); }
 
 document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => switchView(b.dataset.view));
 $("#q").oninput = e => { query = e.target.value; applySearch(); };
@@ -620,15 +1114,21 @@ $("#q").onkeydown = e => {
   const hit = currentItems.find(i => i.name.toLowerCase() === q) || currentItems.find(i => i.name.toLowerCase().startsWith(q) || (i.full || "").toLowerCase().includes(q));
   if (hit) openDetail(hit);
 };
-$("#period").onchange = e => { prefs.period = e.target.value; store.set("prefs", prefs); renderMap(); };
-$("#size").onchange = e => { prefs.size = e.target.value; store.set("prefs", prefs); renderMap(); };
-
+$("#period").value = prefs.period; $("#size").value = prefs.size; $("#cur").value = prefs.cur;
+$("#period").onchange = e => { prefs.period = e.target.value; savePrefs(); renderMap(); };
+$("#size").onchange = e => { prefs.size = e.target.value; savePrefs(); renderMap(); };
+$("#cur").onchange = e => { prefs.cur = e.target.value; savePrefs(); switchView(view); };
+$("#themeBtn").onclick = () => { prefs.theme = prefs.theme === "dark" ? "light" : "dark"; savePrefs(); applyTheme(); };
 let rT; addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => { if (view === "stocks" || view === "crypto") renderMap(); }, 150); });
 
 // =================== Başlanğıc ===================
+applyTheme();
+fillListSelects();
 switchView("stocks");
+loadRates().then(() => { if (prefs.cur !== "USD") switchView(view); });
 loadStocks();
 loadCrypto(); setInterval(loadCrypto, 60000);
+loadFng(); setInterval(loadFng, 30 * 60000);
 </script>
 </body>
 </html>
