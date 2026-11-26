@@ -545,6 +545,7 @@ const fine = matchMedia("(pointer: fine)").matches;
 function tile(parent, r, scale, held) {
   const d = document.createElement("div");
   d.className = "tile" + (r.nodata && r.kind === "stock" ? " nodata" : "") + (held.has(r.kind + ":" + r.id) ? " held" : "");
+  d.translate = false;   // Google Translate ticker-ləri dəyişməsin (SOL → "LEFT" kimi)
   d.dataset.name = r.name.toLowerCase(); d.dataset.full = (r.full || "").toLowerCase();
   Object.assign(d.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px", background: color(r.chg, scale) });
   const fs = Math.max(8, Math.min(36, Math.sqrt(r.w * r.h) / 4.2));
@@ -592,7 +593,7 @@ function flushLive() {
 }
 
 function showTip(e, r) {
-  tip.innerHTML = `<div style="font-size:15px;font-weight:700;margin-bottom:4px">${esc(r.name)} <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(r.full || r.sector || "")}</span></div>` +
+  tip.innerHTML = `<div style="font-size:15px;font-weight:700;margin-bottom:4px"><span translate="no">${esc(r.name)}</span> <span style="color:var(--muted);font-weight:400;font-size:12px">${esc(r.full || r.sector || "")}</span></div>` +
     `<div class="row">Qiymət <b>${money(r.price)}</b></div>` +
     `<div class="row">Dəyişmə <b class="${cls(r.chg)}">${pct(r.chg)}</b></div>` +
     `<div class="row">Bazar dəyəri <b>${fmtCap(r.cap)}</b></div>` +
@@ -637,7 +638,7 @@ function renderMap() {
 }
 
 function chipBtn(parent, text, bg, onclick) {
-  const c = document.createElement("button"); c.className = "chip"; c.textContent = text;
+  const c = document.createElement("button"); c.className = "chip"; c.translate = false; c.textContent = text;
   if (bg) c.style.background = bg; else c.classList.add("plain");
   c.onclick = onclick; parent.appendChild(c); return c;
 }
@@ -742,7 +743,7 @@ function openDetail(r) {
   if (h && r.price) rows += `<div class="row">Portfeldə <b>${h.qty} əd. · ${money(h.qty * r.price)} · <span class="${cls(r.price - h.cost)}">${moneySigned(h.qty * (r.price - h.cost))}</span></b></div>`;
   const inList = isInList(r.kind, r.id);
   $("#sheetBody").innerHTML =
-    `<div class="ttl">${esc(r.name)} <small>${esc(r.full || "")}</small></div>` +
+    `<div class="ttl"><span translate="no">${esc(r.name)}</span> <small>${esc(r.full || "")}</small></div>` +
     `<div class="big"><span id="dPrice">${money(r.price)}</span> <span id="dChg" style="font-size:17px" class="${cls(r.chg)}">${pct(r.chg)}</span></div>` +
     (r.nodata && r.kind === "stock" ? `<div style="color:var(--warn);font-size:12px;margin-bottom:6px">${r.price == null ? "Qiymət yoxdur." : "Demo data."} Canlı qiymət üçün Finnhub açarı əlavə edin (Siyahım bölməsi).</div>` : "") +
     (r.kind === "crypto" ? `<div id="sparkBox">${sparkSVG(r.spark) || `<div class="note">7 günlük qrafik yüklənir…</div>`}</div>` : "") + rows +
@@ -1032,7 +1033,7 @@ function renderPortfolio() {
   t.innerHTML = `<tr><th>Aktiv</th><th>Say</th><th>Alış</th><th>Qiymət</th><th>Dəyər</th><th>Qazanc/zərər</th><th>Bu gün</th><th></th></tr>` +
     rows.map(({ p, q, value }, i) => {
       const plv = value != null ? value - p.qty * p.cost : null;
-      return `<tr><td><b>${esc(p.sym)}</b> <span class="tag">${p.kind === "stock" ? "səhm" : "kripto"}</span></td><td>${+p.qty.toPrecision(8)}</td><td>${money(p.cost)}</td><td>${q ? money(q.price) : `<span title="Qiymət yoxdur" style="color:var(--warn)">—</span>`}</td><td>${money(value)}</td>` +
+      return `<tr><td><b translate="no">${esc(p.sym)}</b> <span class="tag">${p.kind === "stock" ? "səhm" : "kripto"}</span></td><td>${+p.qty.toPrecision(8)}</td><td>${money(p.cost)}</td><td>${q ? money(q.price) : `<span title="Qiymət yoxdur" style="color:var(--warn)">—</span>`}</td><td>${money(value)}</td>` +
         `<td class="${cls(plv)}">${plv != null ? moneySigned(plv) + (p.cost ? ` (${pct(plv / (p.qty * p.cost) * 100)})` : "") : "—"}</td><td class="${cls(q?.chg)}">${q ? pct(q.chg) : "—"}</td><td><button class="x" data-i="${i}" aria-label="Sil">×</button></td></tr>`;
     }).join("");
   t.querySelectorAll(".x").forEach(b => b.onclick = () => { portfolio.splice(+b.dataset.i, 1); savePortfolio(); renderPortfolio(); });
@@ -1096,7 +1097,7 @@ function renderAlerts() {
     const q = quoteOf(a.kind, a.id);
     const row = document.createElement("div"); row.className = "li";
     row.innerHTML = `<span class="t"></span><span class="s"></span>${a.fired ? `<button class="btn" style="padding:3px 8px;font-size:12px">Yenidən aktiv et</button>` : ""}<button class="x" aria-label="Sil">×</button>`;
-    row.querySelector(".t").textContent = a.sym;
+    row.querySelector(".t").textContent = a.sym; row.querySelector(".t").translate = false;
     row.querySelector(".s").textContent = `${alertText(a)} · indi ${q ? money(q.price) : "—"}` + (a.fired ? ` · ✓ ${fmtDT(a.fired)} işə düşdü` : " · gözləyir");
     if (a.fired) row.querySelector(".btn").onclick = () => { a.fired = 0; saveAlerts(); renderAlerts(); checkAlerts(); };
     row.querySelector(".x").onclick = () => { alerts.splice(i, 1); saveAlerts(); renderAlerts(); };
@@ -1270,7 +1271,7 @@ function renderLists() {
     items.forEach(([t, s, rm]) => {
       const row = document.createElement("div"); row.className = "li";
       row.innerHTML = `<span class="t"></span><span class="s"></span><button class="x" aria-label="${label}">${sym}</button>`;
-      row.querySelector(".t").textContent = t; row.querySelector(".s").textContent = s;
+      row.querySelector(".t").textContent = t; row.querySelector(".t").translate = false; row.querySelector(".s").textContent = s;
       row.querySelector("button").onclick = rm; box.appendChild(row);
     });
   };
@@ -1347,13 +1348,13 @@ async function renderCalendar() {
     else {
       const byDay = {}; rows.slice(0, 400).forEach(r => (byDay[r.date] ||= []).push(r));
       earn.innerHTML = Object.entries(byDay).map(([d, list]) => `<div class="day"><h3>${esc(dayName(d))}</h3>` + list.map(r =>
-        `<div class="ev"><span class="t">${esc(r.symbol)}</span><span class="s">Q${esc(r.quarter)} ${esc(r.year)}${r.epsEstimate != null ? ` · EPS proqnoz: ${(+r.epsEstimate).toFixed(2)}` : ""}${r.epsActual != null ? ` · faktiki: ${(+r.epsActual).toFixed(2)}` : ""}</span>${HOURS[r.hour] ? `<span class="tag">${HOURS[r.hour]}</span>` : ""}</div>`).join("") + `</div>`).join("");
+        `<div class="ev"><span class="t" translate="no">${esc(r.symbol)}</span><span class="s">Q${esc(r.quarter)} ${esc(r.year)}${r.epsEstimate != null ? ` · EPS proqnoz: ${(+r.epsEstimate).toFixed(2)}` : ""}${r.epsActual != null ? ` · faktiki: ${(+r.epsActual).toFixed(2)}` : ""}</span>${HOURS[r.hour] ? `<span class="tag">${HOURS[r.hour]}</span>` : ""}</div>`).join("") + `</div>`).join("");
     }
   } catch (err) { earn.innerHTML = `<p class="empty">Yüklənmədi: ${esc(err.message)}</p>`; }
   try {
     const i = await finnhub(`calendar/ipo?${range}`);
     const rows = (i.ipoCalendar || []).sort((a, b) => a.date.localeCompare(b.date));
-    ipo.innerHTML = rows.length ? rows.map(r => `<div class="ev"><span class="t">${esc(r.symbol || "—")}</span><span class="s">${esc(r.name)} · ${esc(r.exchange || "")}${r.price ? ` · $${esc(r.price)}` : ""}</span><span class="tag">${esc(r.date)}</span></div>`).join("") : `<p class="empty">Bu dövrdə IPO yoxdur.</p>`;
+    ipo.innerHTML = rows.length ? rows.map(r => `<div class="ev"><span class="t" translate="no">${esc(r.symbol || "—")}</span><span class="s">${esc(r.name)} · ${esc(r.exchange || "")}${r.price ? ` · $${esc(r.price)}` : ""}</span><span class="tag">${esc(r.date)}</span></div>`).join("") : `<p class="empty">Bu dövrdə IPO yoxdur.</p>`;
   } catch (err) { ipo.innerHTML = `<p class="empty">Yüklənmədi: ${esc(err.message)}</p>`; }
 }
 $("#calRange").onchange = renderCalendar;
@@ -1472,7 +1473,7 @@ function renderSugg(res, loading) {
     const row = document.createElement("div"); row.className = "sg";
     const inL = isInList(o.kind, o.id);
     row.innerHTML = `<span class="tag">${o.kind === "stock" ? "səhm" : "kripto"}</span><b></b><span class="nm"></span><span class="pr">${suggPrice(o)}</span><button class="add${inL ? " in" : ""}" title="${inL ? "Siyahıdadır" : "Siyahıya əlavə et"}" aria-label="${inL ? "Siyahıdadır" : "Siyahıya əlavə et"}">${inL ? "✓" : "+"}</button>`;
-    row.querySelector("b").textContent = o.sym;
+    row.querySelector("b").textContent = o.sym; row.querySelector("b").translate = false;
     row.querySelector(".nm").textContent = o.name || "";
     row.dataset.key = o.kind + ":" + o.id;
     row.onclick = () => { hideSugg(); openAny(o); };
