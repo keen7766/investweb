@@ -23,7 +23,7 @@ jobs:
       - name: Qiymətləri çək
         run: python3 .github/scripts/fetch_prices.py index.html stocks.json
 
-      - name: "data" budağına yaz (yalnız stocks.json, tarixçəsiz)
+      - name: data budağına yaz (yalnız stocks.json, tarixçəsiz)
         run: |
           mkdir out && cp stocks.json out/ && cd out
           git init -q -b data
