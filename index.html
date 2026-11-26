@@ -1510,8 +1510,13 @@ function showInstallHelp() {
   const ios = /iPhone|iPad|iPod/i.test(ua);
   const inApp = /FBAN|FBAV|Instagram|WhatsApp|Telegram|Line\/|; wv\)|GSA\//i.test(ua);
   const samsung = /SamsungBrowser/i.test(ua);
+  const miBrowser = /MiuiBrowser|XiaoMi\//i.test(ua);
   let steps;
-  if (inApp) steps = [
+  if (miBrowser) steps = [
+    "Bu səhifə Xiaomi-nin öz brauzerində (Mi Browser) açılıb. Quraşdırma <b>Google Chrome</b>-da daha yaxşı işləyir.",
+    "Chrome telefonda yoxdursa, Play Store-dan <b>Google Chrome</b> yükləyin.",
+    "Chrome-da <b>keen7766.github.io/investweb</b> ünvanını açıb bu düyməyə yenidən basın."];
+  else if (inApp) steps = [
     "Bu səhifə başqa proqramın (WhatsApp, Telegram, Instagram və s.) içində açılıb. Oradan quraşdırmaq olmur.",
     "Sağ yuxarıdakı <b>⋮</b> və ya <b>…</b> menyusuna basın və <b>“Chrome-da aç”</b> (və ya “Brauzerdə aç”) seçin.",
     "Chrome-da açılanda bu düyməyə yenidən basın."];
@@ -1531,6 +1536,9 @@ function showInstallHelp() {
   detailItem = null;
   $("#sheetBody").innerHTML = `<div class="ttl">⬇ investWEB-i telefona quraşdır</div>
     <ol class="steps" style="margin-top:12px">${steps.map(s => `<li style="margin-bottom:6px">${s}</li>`).join("")}</ol>
+    ${!ios ? `<div class="banner" style="margin:10px 0 0"><span><b>Xiaomi / Redmi / POCO telefonlarında:</b> əvvəlcə Chrome-a icazə verin:<br>
+      <b>Parametrlər → Tətbiqlər → Tətbiqləri idarə et → Chrome → Digər icazələr → “Ana ekran qısayolları”</b> → <b>İcazə ver</b>.<br>
+      Sonra Chrome-u bağlayıb yenidən açın və yuxarıdakı addımları təkrarlayın.</span></div>` : ""}
     <p class="note">Əvvəllər ana ekrana link kimi əlavə etmisinizsə, köhnə ikonu silin və yenidən quraşdırın. Quraşdırma bir dəfəlikdir; sonrakı yeniləmələr avtomatik gəlir.</p>`;
   $("#sheet").classList.add("open");
 }
