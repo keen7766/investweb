@@ -813,7 +813,11 @@ async function loadNews(r) {
 }
 
 // =================== Kripto datası (CoinGecko) ===================
-async function loadCrypto() {
+let cryptoLastOk = 0, cryptoBusy = false;
+async function loadCrypto(force) {
+  // CoinGecko pulsuz limiti azdır: 30 saniyədən tez-tez sorğu göndərmə (Binance onsuz da canlıdır)
+  if (cryptoBusy || (!force && Date.now() - cryptoLastOk < 30000)) return;
+  cryptoBusy = true;
   try {
     // 1) Avtomatik: ən böyük N kripto (bir sorğu)
     if (L.cryptoTop > 0) {
@@ -836,7 +840,9 @@ async function loadCrypto() {
     if (changed) saveLists();
     rebuildSymToId();
     connectBinance();
-  } catch (e) { cryptoErr = "Kripto datası yüklənmədi (" + e.message + "). 60 san. sonra yenidən."; }
+    cryptoLastOk = Date.now();
+  } catch (e) { if (!cryptoLoaded) cryptoErr = "Kripto datası yüklənmədi. Bir az sonra avtomatik yenidən cəhd olunacaq."; }
+  cryptoBusy = false;
   checkAlerts();
   refreshVisible();
 }
@@ -1010,7 +1016,7 @@ $("#pfForm").onsubmit = async e => {
   savePortfolio();
   $("#pfSym").value = $("#pfQty").value = $("#pfCost").value = "";
   renderPortfolio();
-  if (kind === "crypto" && !cryptoAll[id]) loadCrypto();
+  if (kind === "crypto" && !cryptoAll[id]) loadCrypto(true);
   if (kind === "stock" && !live[id]) loadStocks();
 };
 function renderPortfolio() {
@@ -1087,7 +1093,7 @@ $("#alForm").onsubmit = async e => {
   $("#alSym").value = $("#alVal").value = "";
   if (msg.style.color !== "var(--warn)") setMsg(msg, `${name} üçün xəbərdarlıq quruldu.`, "ok");
   renderAlerts();
-  if (kind === "crypto" && !cryptoAll[id]) loadCrypto(); else checkAlerts();
+  if (kind === "crypto" && !cryptoAll[id]) loadCrypto(true); else checkAlerts();
   if (kind === "stock" && getKey() && !live[id]) loadStocks();
 };
 function renderAlerts() {
@@ -1190,7 +1196,7 @@ function fillListSelects() {
 function setActiveList(n) {
   if (!lists.data[n]) return;
   lists.active = n; L = lists.data[n]; saveLists();
-  fillListSelects(); refreshAll(); loadCrypto();
+  fillListSelects(); refreshAll(); loadCrypto(true);
 }
 $("#listSel").onchange = e => setActiveList(e.target.value);
 $("#listSel2").onchange = e => setActiveList(e.target.value);
@@ -1237,7 +1243,7 @@ function addCryptoCoin(c) {
   if (isInList("crypto", c.id)) return { ok: false, text: `${c.sym} artıq siyahıdadır.`, warn: true };
   L.cryptoHide = L.cryptoHide.filter(id => id !== c.id);
   if (!isInList("crypto", c.id)) L.crypto.push({ id: c.id, sym: c.sym, name: c.name });
-  saveLists(); renderLists(); loadCrypto();
+  saveLists(); renderLists(); loadCrypto(true);
   return { ok: true, text: `${c.name || c.sym} (${c.sym}) siyahıya əlavə olundu.` };
 }
 async function addStock() {
@@ -1292,8 +1298,8 @@ function twoStep(btn, labelText, action) {
   };
 }
 twoStep($("#resetStocks"), "Standart səhmləri qaytar", () => { L.stocks = defaultList().stocks; saveLists(); refreshAll(); });
-twoStep($("#resetCrypto"), "Standart kriptoları qaytar", () => { L.crypto = []; L.cryptoHide = []; L.cryptoTop = DEFAULT_CRYPTO_TOP; saveLists(); renderLists(); loadCrypto(); });
-$("#cryptoTop").onchange = e => { L.cryptoTop = +e.target.value; saveLists(); renderLists(); loadCrypto(); };
+twoStep($("#resetCrypto"), "Standart kriptoları qaytar", () => { L.crypto = []; L.cryptoHide = []; L.cryptoTop = DEFAULT_CRYPTO_TOP; saveLists(); renderLists(); loadCrypto(true); });
+$("#cryptoTop").onchange = e => { L.cryptoTop = +e.target.value; saveLists(); renderLists(); loadCrypto(true); };
 $("#addStock").onsubmit = e => { e.preventDefault(); addStock(); };
 $("#addCrypto").onsubmit = e => { e.preventDefault(); addCrypto(); };
 $("#keyForm").onsubmit = e => {
