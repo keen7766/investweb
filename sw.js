@@ -1,7 +1,7 @@
 // investWEB service worker: proqramın özünü (səhifə, ikonlar) saxlayır ki,
 // telefona quraşdırılsın və internet zəif olanda da açılsın.
 // Bazar datası (CoinGecko, Finnhub və s.) heç vaxt keşlənmir — həmişə canlıdır.
-const CACHE = "investweb-v1";
+const CACHE = "investweb-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

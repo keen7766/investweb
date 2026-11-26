@@ -70,6 +70,28 @@
   .tile.hit { outline: 3px solid #ffd33d; z-index: 3; }
   .tile.nodata::after { content: "demo"; position: absolute; right: 2px; bottom: 1px; font-size: 8px; opacity: .6; }
   .tile.held::before { content: "★"; position: absolute; left: 3px; top: 1px; font-size: 10px; color: #ffd33d; }
+  .tile .p { line-height: 1.2; opacity: .92; font-variant-numeric: tabular-nums; }
+  .tile.fu { animation: fu .9s ease-out; } .tile.fd { animation: fd .9s ease-out; }
+  @keyframes fu { from { box-shadow: inset 0 0 0 3px #a7f3c0; } to { box-shadow: inset 0 0 0 3px transparent; } }
+  @keyframes fd { from { box-shadow: inset 0 0 0 3px #fecaca; } to { box-shadow: inset 0 0 0 3px transparent; } }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--up); margin-right: 5px; vertical-align: 1px; animation: pulse 2s infinite; }
+  .dot.off { background: var(--muted); animation: none; }
+  @keyframes pulse { 50% { opacity: .35; } }
+
+  /* Axtarış nəticələri */
+  .sugg { position: absolute; top: calc(100% + 4px); left: 0; width: max(100%, 340px); max-width: calc(100vw - 24px); max-height: 65dvh; overflow-y: auto; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.4); z-index: 40; }
+  .sg { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .sg:hover, .sg.act { background: var(--panel); }
+  .sg b { min-width: 58px; }
+  .sg .nm { flex: 1; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sg .pr { font-size: 12px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sg .add { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; width: 28px; height: 28px; flex: none; font-size: 16px; line-height: 1; }
+  .sg .add.in { color: var(--up); }
+  .sg-h { padding: 6px 10px; font-size: 11px; color: var(--muted); background: var(--bg); position: sticky; top: 0; }
+  .banner { margin: 8px 12px 0; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 8px; font-size: 13px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .banner .btn { padding: 5px 10px; }
+  ol.steps { margin: 6px 0 10px 18px; font-size: 13px; line-height: 1.6; }
+  @media (prefers-reduced-motion: reduce) { .tile.fu, .tile.fd, .dot { animation: none; } }
 
   #tip { position: fixed; pointer-events: none; background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 13px; display: none; z-index: 20; min-width: 180px; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
   .row { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); padding: 1px 0; }
@@ -164,7 +186,7 @@
 </header>
 <div class="toolbar">
   <select id="listSel" title="Aktiv siyahı"></select>
-  <div class="search" id="searchBox"><input id="q" type="search" placeholder="Axtar: AAPL, BTC…" autocomplete="off"></div>
+  <div class="search" id="searchBox"><input id="q" type="search" placeholder="Axtar: istənilən səhm və ya kripto…" autocomplete="off" aria-label="Axtarış"><div class="sugg" id="sugg" hidden></div></div>
   <select id="period" title="Dövr">
     <option value="1h">1 saat</option><option value="24h">24 saat</option><option value="7d">7 gün</option><option value="30d">30 gün</option>
   </select>
@@ -274,17 +296,28 @@
     </div>
     <div class="card">
       <h2>Kriptolar (<span id="cryptoCount">0</span>)</h2>
+      <div class="form" style="margin-bottom:8px">
+        <label for="cryptoTop" style="font-size:13px">Avtomatik daxil et:</label>
+        <select id="cryptoTop" class="inp sm" style="flex:1 1 160px"><option value="0">Yox (yalnız əlavə etdiklərim)</option><option value="50">Ən böyük 50 kripto</option><option value="100">Ən böyük 100 kripto</option><option value="200">Ən böyük 200 kripto</option><option value="250">Ən böyük 250 kripto</option></select>
+      </div>
       <form class="form" id="addCrypto">
         <input class="inp" id="cryptoIn" placeholder="Ad və ya simvol, məs. PEPE" autocomplete="off">
         <button class="btn green">Əlavə et</button>
       </form>
       <div class="msg" id="cryptoMsg"></div>
+      <div class="note" id="cryptoListNote"></div>
       <div class="list" id="cryptoList"></div>
+      <div id="hiddenWrap" hidden><div class="note" style="margin-top:10px">Gizlətdikləriniz (geri qaytarmaq üçün ↺ basın):</div><div class="list" id="hiddenList" style="max-height:180px"></div></div>
       <div class="btns"><button class="btn red" id="resetCrypto">Standart kriptoları qaytar</button></div>
     </div>
   </div>
   <div class="card">
-    <h2>🔑 Finnhub API açarı</h2>
+    <h2>🔑 Finnhub API açarı (canlı səhm qiymətləri üçün)</h2>
+    <ol class="steps">
+      <li><a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io/register</a> səhifəsində pulsuz qeydiyyatdan keçin (e-poçt və şifrə).</li>
+      <li>Daxil olduqdan sonra <b>Dashboard</b>-da görünən <b>API Key</b>-i kopyalayın.</li>
+      <li>Aşağıdakı xanaya yapışdırıb <b>Yadda saxla</b> basın.</li>
+    </ol>
     <form class="form" id="keyForm">
       <input class="inp" id="keyInput" type="password" placeholder="Açarı bura yapışdırın" autocomplete="off">
       <button class="btn green">Yadda saxla</button>
@@ -334,8 +367,9 @@ const SYM = { USD: "$", AZN: "₼", EUR: "€" };
 function money(usd, digits) {
   if (usd == null || isNaN(usd)) return "—";
   const c = prefs.cur, v = usd * RATES[c], a = Math.abs(v);
-  const d = digits ?? (a >= 1 ? 2 : a >= 0.01 ? 4 : 8);
-  const n = (v < 0 ? "−" : "") + a.toLocaleString("en-US", { minimumFractionDigits: a >= 1 ? 2 : 0, maximumFractionDigits: d });
+  const n = (v < 0 ? "−" : "") + (a >= 1 || a === 0
+    ? a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: digits ?? 2 })
+    : a.toLocaleString("en-US", { maximumSignificantDigits: 4, maximumFractionDigits: 20 }));   // çox ucuz tokenlər: 0.00001234
   return c === "AZN" ? `${n} ₼` : SYM[c] + n;
 }
 function moneySigned(usd) { return (usd > 0 ? "+" : "") + money(usd); }
@@ -353,27 +387,50 @@ async function loadRates() {
 }
 
 // =================== Standart siyahılar ===================
-const DEFAULT_STOCKS = Object.entries({
-  "TEXNOLOGİYA": [["AAPL",3900,-1.90],["NVDA",4300,2.29],["MSFT",3700,2.74],["AVGO",1600,3.07],["AMD",380,3.65],["MU",220,2.58],["ORCL",700,5.85],["INTC",180,0.97],["AMAT",190,1.97],["LRCX",170,1.39],["PANW",130,-0.43],["TXN",170,3.47],["ANET",170,3.52],["IBM",270,-0.98],["CRWD",120,1.19],["DELL",95,3.98],["APH",160,5.45],["PLTR",420,-1.65],["CSCO",290,1.34],["QCOM",180,1.45],["CRM",240,-1.76],["ACN",160,-2.45],["ADBE",150,-2.12],["INTU",180,-2.10],["NOW",190,2.97],["ADI",120,1.68],["KLAC",120,2.02]],
-  "MALİYYƏ": [["BRK-B",1050,0.17],["JPM",820,-0.76],["V",660,-1.20],["MA",520,-1.66],["BAC",380,0.18],["MS",240,0.19],["GS",250,-0.29],["WFC",270,-0.42],["BLK",170,-0.50],["SCHW",170,0.64],["AXP",230,-0.76],["C",180,-0.32],["BX",190,-1.62],["SPGI",160,-1.92],["PGR",150,-2.06],["COF",140,-0.98],["HOOD",100,2.19]],
-  "SƏNAYE": [["GE",300,1.55],["CAT",260,1.68],["RTX",230,0.51],["GEV",180,6.49],["DE",130,-0.27],["UNP",140,-1.16],["UBER",190,-0.16],["ETN",140,7.00],["BA",160,-1.19],["LMT",110,-0.65],["HWM",80,4.76],["PWR",65,5.77]],
-  "İSTEHLAK (SİKLİK)": [["AMZN",2400,2.06],["TSLA",1400,-1.32],["HD",380,-2.20],["MCD",220,-0.98],["TJX",160,-2.39],["LOW",140,-2.19],["SBUX",100,0.35],["BKNG",170,1.25],["ABNB",80,-2.43],["NKE",100,-1.10]],
-  "İSTEHLAK (ƏSAS)": [["WMT",820,-2.22],["COST",420,-2.05],["KO",300,-1.07],["PG",360,-0.92],["PM",250,-0.12],["PEP",200,-2.24]],
-  "KOMMUNİKASİYA": [["GOOGL",3100,1.10],["META",1800,0.85],["NFLX",420,-0.60],["DIS",200,-0.40],["T",190,0.20]],
-  "SƏHİYYƏ": [["LLY",800,0.90],["UNH",300,-1.30],["JNJ",420,0.30],["ABBV",380,-0.70],["MRK",240,0.50]],
-  "ENERJİ": [["XOM",480,-0.80],["CVX",300,-0.60],["COP",120,-1.10]]
-}).flatMap(([sec, list]) => list.map(([t, cap, chg]) => [t, sec, cap, chg]));
-const DEFAULT_CRYPTO = ["bitcoin","ethereum","tether","ripple","binancecoin","solana","usd-coin","tron","dogecoin","cardano","hyperliquid","chainlink","bitcoin-cash","stellar","sui","avalanche-2","litecoin","hedera-hashgraph","shiba-inu","the-open-network","polkadot","monero","uniswap","aave","pepe","near","aptos","internet-computer","ethereum-classic","cosmos","arbitrum","optimism","filecoin","render-token","kaspa","algorand","vechain","injective-protocol","bittensor","ondo-finance"];
+// ~290 böyük ABŞ səhmi: TICKER:təxmini bazar dəyəri ($ mlrd). Canlı dəyişmə Finnhub-dan gəlir.
+const UNIVERSE_SRC = {
+  "TEXNOLOGİYA": "NVDA:4300 AAPL:3900 MSFT:3700 AVGO:1600 TSM:1300 ORCL:700 PLTR:420 AMD:380 ASML:300 CSCO:290 IBM:270 CRM:240 MU:220 SHOP:200 APP:200 AMAT:190 NOW:190 INTC:180 QCOM:180 INTU:180 LRCX:170 TXN:170 ANET:170 ACN:160 APH:160 ADBE:150 ARM:150 PANW:130 CRWD:120 KLAC:120 ADI:120 DELL:95 CDNS:95 SNPS:80 SNOW:75 FTNT:75 MRVL:70 NET:70 WDAY:65 ADSK:65 GLW:60 MSTR:60 ROP:55 NXPI:55 STX:55 TEL:50 DDOG:50 WDC:45 MPWR:45 TEAM:45 ZS:40 MCHP:35 SNDK:30 HPE:30 HPQ:25 TER:25 SMCI:25 NTAP:22 ON:22",
+  "KOMMUNİKASİYA": "GOOGL:3100 META:1800 NFLX:420 TMUS:260 DIS:200 T:190 VZ:180 CMCSA:120 SPOT:120 EA:50 WBD:50 TTWO:45 RDDT:40 CHTR:40 PINS:20 SNAP:15",
+  "İSTEHLAK (SİKLİK)": "AMZN:2400 TSLA:1400 HD:380 MCD:220 BKNG:170 TJX:160 LOW:140 SBUX:100 NKE:100 DASH:100 ABNB:80 ORLY:80 RCL:80 MAR:75 CVNA:70 AZO:65 GM:65 HLT:65 CMG:50 ROST:50 DHI:45 F:45 YUM:40 EBAY:40 LEN:30 ULTA:25 EXPE:25 LULU:20 DECK:15",
+  "İSTEHLAK (ƏSAS)": "WMT:820 COST:420 PG:360 KO:300 PM:250 PEP:200 MO:100 MDLZ:80 CL:65 MNST:60 TGT:45 KDP:45 KR:45 KMB:40 SYY:38 HSY:35 KHC:32 GIS:30 EL:30 STZ:25 DG:25 ADM:25 CHD:22",
+  "MALİYYƏ": "BRK-B:1050 JPM:820 V:660 MA:520 BAC:380 WFC:270 GS:250 MS:240 AXP:230 BX:190 C:180 BLK:170 SCHW:170 SPGI:160 PGR:150 COF:140 KKR:120 CB:115 MMC:100 CME:100 HOOD:100 IBKR:100 ICE:95 MCO:90 FI:90 AON:80 COIN:80 APO:80 BK:80 PNC:75 USB:75 PYPL:70 TRV:60 TFC:60 AFL:58 MET:55 ALL:55 AMP:50 AIG:45 PRU:38 SOFI:30",
+  "SƏHİYYƏ": "LLY:800 JNJ:420 ABBV:380 UNH:300 MRK:240 ABT:220 TMO:200 ISRG:190 AMGN:160 DHR:150 BSX:150 SYK:145 PFE:140 GILD:140 VRTX:120 MDT:115 BMY:95 CVS:95 HCA:95 MCK:90 CI:85 ELV:80 REGN:65 ZTS:65 COR:55 BDX:55 IDXX:50 EW:45 DXCM:30 HUM:30",
+  "SƏNAYE": "GE:300 CAT:260 RTX:230 UBER:190 GEV:180 BA:160 HON:140 UNP:140 ETN:140 DE:130 ADP:120 LMT:110 TT:95 PH:95 WM:90 GD:90 MMM:85 NOC:80 UPS:80 HWM:80 CTAS:80 ITW:75 JCI:75 EMR:75 TDG:75 RSG:70 CSX:65 PWR:65 NSC:60 FDX:60 VRT:60 CARR:55 PCAR:55 URI:55 LHX:55 AXON:55 FAST:50 PAYX:50 CPRT:45 DAL:40 UAL:35 ODFL:35",
+  "ENERJİ": "XOM:480 CVX:300 COP:120 EPD:70 WMB:70 EOG:65 KMI:60 ET:60 SLB:55 PSX:55 MPC:55 OKE:50 VLO:45 OXY:45 BKR:45 FANG:42 HAL:25 DVN:22",
+  "KOMMUNAL": "NEE:160 CEG:110 SO:100 DUK:95 VST:65 AEP:58 SRE:55 D:50 EXC:45 XEL:42 PCG:35 NRG:30",
+  "DAŞINMAZ ƏMLAK": "WELL:110 PLD:105 AMT:95 EQIX:75 SPG:60 DLR:60 O:52 PSA:50 CCI:45 VICI:35",
+  "MATERİALLAR": "LIN:220 SHW:90 NEM:90 ECL:75 CRH:70 APD:65 FCX:65 CTVA:45 VMC:38 MLM:37 NUE:32 DD:30 PPG:25 DOW:18"
+};
+// Açar olmayanda göstərilən demo faizlər (ilk şəkildən). Qalanlar boz görünür.
+const DEMO = Object.fromEntries("AAPL:-1.90 NVDA:2.29 MSFT:2.74 AVGO:3.07 AMD:3.65 MU:2.58 ORCL:5.85 INTC:0.97 AMAT:1.97 LRCX:1.39 PANW:-0.43 TXN:3.47 ANET:3.52 IBM:-0.98 CRWD:1.19 DELL:3.98 APH:5.45 PLTR:-1.65 CSCO:1.34 QCOM:1.45 CRM:-1.76 ACN:-2.45 ADBE:-2.12 INTU:-2.10 NOW:2.97 ADI:1.68 KLAC:2.02 SNDK:4.78 STX:2.13 WDC:2.59 MRVL:0.33 CDNS:-1.75 SNPS:-0.69 FTNT:1.51 GLW:2.39 BRK-B:0.17 JPM:-0.76 V:-1.20 MA:-1.66 BAC:0.18 MS:0.19 GS:-0.29 WFC:-0.42 BLK:-0.50 SCHW:0.64 AXP:-0.76 C:-0.32 BX:-1.62 SPGI:-1.92 PGR:-2.06 COF:-0.98 HOOD:2.19 CME:-0.71 BK:1.04 KKR:-2.06 CB:-0.66 APO:-4.95 GE:1.55 CAT:1.68 RTX:0.51 GEV:6.49 DE:-0.27 UNP:-1.16 UBER:-0.16 ETN:7.00 BA:-1.19 LMT:-0.65 HWM:4.76 PWR:5.77 MMM:-0.73 CTAS:-0.46 JCI:2.33 ITW:-1.18 NOC:-0.90 GD:0.28 VRT:5.23 EMR:0.26 UPS:-0.49 CSX:-1.74 FDX:-0.07 AMZN:2.06 TSLA:-1.32 HD:-2.20 MCD:-0.98 TJX:-2.39 LOW:-2.19 SBUX:0.35 BKNG:1.25 ABNB:-2.43 DASH:-3.55 GM:-1.78 ROST:0.44 RCL:-2.46 HLT:-0.24 ORLY:-0.78 WMT:-2.22 COST:-2.05 KO:-1.07 PG:-0.92 PM:-0.12 PEP:-2.24 MO:-0.30 MDLZ:-1.90 CL:-1.86 TGT:-2.51 KMB:-3.50"
+  .split(" ").map(s => { const [t, v] = s.split(":"); return [t, +v]; }));
+const UNIVERSE = Object.entries(UNIVERSE_SRC).flatMap(([sec, s]) => s.split(" ").map(x => { const [t, cap] = x.split(":"); return [t, sec, +cap, DEMO[t] ?? null]; }));
+const UNIVERSE_MAP = Object.fromEntries(UNIVERSE.map(x => [x[0], x]));
+const DEFAULT_STOCKS = UNIVERSE;
+const DEFAULT_CRYPTO_TOP = 200;
 const SECTOR_MAP = { technology: "TEXNOLOGİYA", semiconductors: "TEXNOLOGİYA", software: "TEXNOLOGİYA", banking: "MALİYYƏ", "financial services": "MALİYYƏ", insurance: "MALİYYƏ", retail: "İSTEHLAK (SİKLİK)", automobiles: "İSTEHLAK (SİKLİK)", "hotels, restaurants & leisure": "İSTEHLAK (SİKLİK)", media: "KOMMUNİKASİYA", telecommunication: "KOMMUNİKASİYA", pharmaceuticals: "SƏHİYYƏ", biotechnology: "SƏHİYYƏ", "health care": "SƏHİYYƏ", energy: "ENERJİ", "oil & gas": "ENERJİ", "aerospace & defense": "SƏNAYE", machinery: "SƏNAYE" };
-const defaultList = () => ({ stocks: DEFAULT_STOCKS.map(x => [...x]), crypto: DEFAULT_CRYPTO.map(id => ({ id })) });
+const defaultList = () => ({ stocks: DEFAULT_STOCKS.map(x => [...x]), crypto: [], cryptoTop: DEFAULT_CRYPTO_TOP, cryptoHide: [] });
 
 // =================== Vəziyyət ===================
 let lists = store.get("lists", null);
 if (!lists || !lists.data || !Object.keys(lists.data).length) {
   // köhnə versiyadan köçürmə
-  lists = { active: "Əsas", data: { "Əsas": { stocks: store.get("stockList", null) || defaultList().stocks, crypto: store.get("cryptoList", null) || defaultList().crypto } } };
+  lists = { active: "Əsas", data: { "Əsas": { stocks: store.get("stockList", null) || defaultList().stocks, crypto: store.get("cryptoList", null) || [] } } };
 }
+if ((lists.v || 1) < 2) {
+  // v2: böyük standart siyahı + avtomatik ən böyük 200 kripto
+  Object.entries(lists.data).forEach(([name, l]) => {
+    if (name === "Əsas") {
+      const have = new Set(DEFAULT_STOCKS.map(x => x[0]));
+      l.stocks = [...DEFAULT_STOCKS.map(x => [...x]), ...(l.stocks || []).filter(x => !have.has(x[0]))];
+      l.cryptoTop = DEFAULT_CRYPTO_TOP;
+    }
+  });
+  lists.v = 2;
+}
+Object.values(lists.data).forEach(l => { l.stocks ||= []; l.crypto ||= []; l.cryptoHide ||= []; if (l.cryptoTop == null) l.cryptoTop = 0; });
 if (!lists.data[lists.active]) lists.active = Object.keys(lists.data)[0];
+store.set("lists", lists);
 let L = lists.data[lists.active];
 let portfolio = store.get("portfolio", []);
 let alerts = store.get("alerts", []);
@@ -385,6 +442,8 @@ const savePrefs = () => store.set("prefs", prefs);
 
 let view = "stocks", query = "", currentItems = [];
 const cryptoAll = {};          // id -> CoinGecko sətri
+let topCryptoIds = [];         // avtomatik "ən böyük N" siyahısı
+let symToId = {};              // BTC -> bitcoin (Binance canlı axını üçün)
 let cryptoLoaded = false, cryptoErr = "";
 const live = {};               // ticker -> {chg, price, high, low, prev}
 let stockMsg = "", stockRun = 0, fng = null;
@@ -448,8 +507,12 @@ function cryptoItem(c) {
 function stockItems() {
   return L.stocks.map(([t, sector, cap, demo]) => { const i = stockItem(t, sector, cap, demo); i.v = prefs.size === "equal" ? 1 : cap; return i; });
 }
+function visibleCryptoIds() {
+  const hide = new Set(L.cryptoHide);
+  return [...new Set([...topCryptoIds.slice(0, L.cryptoTop).filter(id => !hide.has(id)), ...L.crypto.map(c => c.id)])];
+}
 function cryptoItems() {
-  return L.crypto.map(c => cryptoAll[c.id]).filter(Boolean).map(c => {
+  return visibleCryptoIds().map(id => cryptoAll[id]).filter(Boolean).map(c => {
     const i = cryptoItem(c);
     i.v = prefs.size === "equal" ? 1 : prefs.size === "volume" ? Math.max(i.vol, 0.001) : Math.max(i.cap, 0.01);
     return i;
@@ -474,10 +537,44 @@ function tile(parent, r, scale, held) {
   if (r.w > 20 && r.h > 13) {
     const b = document.createElement("b"); b.style.fontSize = fs + "px"; b.textContent = r.name; d.appendChild(b);
     if (r.h > fs * 2.1) { const i = document.createElement("i"); i.style.fontSize = fs * 0.62 + "px"; i.textContent = pct(r.chg); d.appendChild(i); }
+    if (r.h > fs * 3.3 && r.w > 54) { const p = document.createElement("span"); p.className = "p"; p.style.fontSize = Math.max(9, fs * 0.46) + "px"; p.textContent = money(r.price); d.appendChild(p); }
   }
-  if (fine) { d.onmousemove = e => showTip(e, r); d.onmouseleave = () => (tip.style.display = "none"); }
-  d.onclick = () => { tip.style.display = "none"; openDetail(r); };
+  const key = r.kind + ":" + r.id;
+  tileEls.set(key, { el: d, r });
+  const cur = () => tileEls.get(key)?.r || r;
+  if (fine) { d.onmousemove = e => showTip(e, cur()); d.onmouseleave = () => (tip.style.display = "none"); }
+  d.onclick = () => { tip.style.display = "none"; openDetail(cur()); };
   parent.appendChild(d);
+}
+
+// =================== Canlı yeniləmə (kvadratları yerində dəyişir) ===================
+const tileEls = new Map();      // "crypto:bitcoin" -> {el, r}
+const pending = new Set();
+let flushT = null, lastStrips = 0, lastPf = 0;
+function markLive(kind, id) { pending.add(kind + ":" + id); if (!flushT) flushT = setTimeout(flushLive, 1500); }
+function updateTileLive(key) {
+  const t = tileEls.get(key); if (!t) return;
+  const kind = key.slice(0, key.indexOf(":")), id = key.slice(key.indexOf(":") + 1);
+  let n;
+  if (kind === "crypto") { const c = cryptoAll[id]; if (!c) return; n = Object.assign({}, t.r, cryptoItem(c)); }
+  else { const l = live[id]; if (!l) return; n = Object.assign({}, t.r, { chg: l.chg, price: l.price, high: l.high, low: l.low, prev: l.prev, nodata: false }); }
+  const old = t.r.price; t.r = n;
+  t.el.style.background = color(n.chg, colorScale());
+  t.el.classList.remove("nodata");
+  const i = t.el.querySelector("i"); if (i) i.textContent = pct(n.chg);
+  const p = t.el.querySelector(".p"); if (p) p.textContent = money(n.price);
+  if (old != null && n.price !== old) { t.el.classList.remove("fu", "fd"); void t.el.offsetWidth; t.el.classList.add(n.price > old ? "fu" : "fd"); }
+}
+function flushLive() {
+  flushT = null;
+  const keys = [...pending]; pending.clear();
+  keys.forEach(updateTileLive);
+  const now = Date.now();
+  if ((view === "stocks" || view === "crypto") && now - lastStrips > 10000) { currentItems = view === "stocks" ? stockItems() : cryptoItems(); renderStrips(); lastStrips = now; }
+  if (view === "portfolio" && now - lastPf > 3000) { renderPortfolio(); lastPf = now; }
+  if (detailItem && keys.includes(detailItem.kind + ":" + detailItem.id)) updateDetailPrice();
+  if (!$("#sugg").hidden) refreshSuggPrices();
+  checkAlerts(); setStatus();
 }
 
 function showTip(e, r) {
@@ -493,7 +590,7 @@ function showTip(e, r) {
 }
 
 function renderMap() {
-  map.innerHTML = "";
+  map.innerHTML = ""; tileEls.clear(); lastStrips = Date.now();
   const W = map.clientWidth;
   const top = map.getBoundingClientRect().top + scrollY;
   const H = Math.max(innerHeight - top - 12, W < 700 ? W * 1.55 : 420);
@@ -600,8 +697,11 @@ function updateHint() {
     return;
   }
   if (view === "stocks" && !getKey()) {
-    h.append("Səhm faizləri demo datadır. Canlı qiymətlər üçün ");
-    const a = document.createElement("a"); a.textContent = "Siyahım → Finnhub açarı"; a.onclick = () => switchView("list"); h.appendChild(a);
+    const b = document.createElement("div"); b.className = "banner";
+    b.innerHTML = `<span><b>Səhmlər hələ canlı deyil.</b> Canlı qiymətlər üçün pulsuz Finnhub açarı lazımdır (1–2 dəqiqə). Kriptolar açarsız canlıdır.</span>`;
+    const btn = document.createElement("button"); btn.className = "btn pri"; btn.textContent = "Açar əlavə et";
+    btn.onclick = () => { switchView("list"); setTimeout(() => { $("#keyInput").scrollIntoView({ block: "center" }); $("#keyInput").focus(); }, 50); };
+    b.appendChild(btn); h.appendChild(b);
   }
 }
 
@@ -625,27 +725,45 @@ function openDetail(r) {
   else rows += `<div class="row">Sektor <b>${esc(r.sector || "—")}</b></div>`;
   const h = portfolio.find(p => p.kind === r.kind && p.id === r.id);
   if (h && r.price) rows += `<div class="row">Portfeldə <b>${h.qty} əd. · ${money(h.qty * r.price)} · <span class="${cls(r.price - h.cost)}">${moneySigned(h.qty * (r.price - h.cost))}</span></b></div>`;
-  const inList = r.kind === "stock" ? L.stocks.some(x => x[0] === r.id) : L.crypto.some(x => x.id === r.id);
+  const inList = isInList(r.kind, r.id);
   $("#sheetBody").innerHTML =
     `<div class="ttl">${esc(r.name)} <small>${esc(r.full || "")}</small></div>` +
-    `<div class="big">${money(r.price)} <span style="font-size:17px" class="${cls(r.chg)}">${pct(r.chg)}</span></div>` +
-    (r.nodata && r.kind === "stock" ? `<div style="color:var(--warn);font-size:12px;margin-bottom:6px">Demo data. Canlı qiymət üçün Finnhub açarı əlavə edin.</div>` : "") +
-    (r.kind === "crypto" ? sparkSVG(r.spark) : "") + rows +
+    `<div class="big"><span id="dPrice">${money(r.price)}</span> <span id="dChg" style="font-size:17px" class="${cls(r.chg)}">${pct(r.chg)}</span></div>` +
+    (r.nodata && r.kind === "stock" ? `<div style="color:var(--warn);font-size:12px;margin-bottom:6px">${r.price == null ? "Qiymət yoxdur." : "Demo data."} Canlı qiymət üçün Finnhub açarı əlavə edin (Siyahım bölməsi).</div>` : "") +
+    (r.kind === "crypto" ? `<div id="sparkBox">${sparkSVG(r.spark) || `<div class="note">7 günlük qrafik yüklənir…</div>`}</div>` : "") + rows +
     `<div class="btns">
       <a class="btn pri" href="${tv}" target="_blank" rel="noopener">📈 Qrafik</a>
       <button class="btn" id="dPf">💼 Portfelə</button>
       <button class="btn" id="dAl">🔔 Xəbərdarlıq</button>
       ${r.kind === "crypto" ? `<button class="btn" id="dCmp">📊 Müqayisə</button>` : ""}
-      ${inList ? `<button class="btn red" id="dRm">Siyahıdan çıxar</button>` : ""}
+      ${inList ? `<button class="btn red" id="dRm">Siyahıdan çıxar</button>` : `<button class="btn green" id="dAdd">+ Siyahıya əlavə et</button>`}
     </div>
     <div class="news"><h3>📰 Son xəbərlər</h3><div id="newsBox" class="note">Yüklənir…</div></div>`;
   $("#dPf").onclick = () => { closeSheet(); switchView("portfolio"); $("#pfKind").value = r.kind; $("#pfSym").value = r.name; $("#pfQty").focus(); };
   $("#dAl").onclick = () => { closeSheet(); switchView("portfolio"); $("#alKind").value = r.kind; $("#alSym").value = r.name; $("#alType").value = "below"; $("#alVal").value = r.price ? +(r.price * RATES[prefs.cur] * 0.95).toPrecision(5) : ""; $("#alVal").focus(); };
   if ($("#dCmp")) $("#dCmp").onclick = () => { closeSheet(); cmpSel[0] = r.id; switchView("compare"); };
   if ($("#dRm")) $("#dRm").onclick = () => { r.kind === "stock" ? removeStock(r.id) : removeCrypto(r.id); closeSheet(); };
+  if ($("#dAdd")) $("#dAdd").onclick = async () => { await addToList({ kind: r.kind, id: r.id, sym: r.name, name: r.full }); closeSheet(); };
   $("#sheet").classList.add("open");
   loadNews(r);
+  if (r.kind === "crypto" && !r.spark) loadSpark(r);
 }
+function updateDetailPrice() {
+  const r = detailItem; if (!r) return;
+  const q = quoteOf(r.kind, r.id); if (!q) return;
+  const chg = r.kind === "crypto" ? cryptoItem(cryptoAll[r.id]).chg : q.chg;
+  const p = $("#dPrice"), c = $("#dChg"); if (!p) return;
+  p.textContent = money(q.price); c.textContent = pct(chg); c.className = cls(chg);
+}
+async function loadSpark(r) {
+  try {
+    const a = await (await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(r.id)}&sparkline=true`)).json();
+    const s = a?.[0]?.sparkline_in_7d; if (!s) throw 0;
+    if (cryptoAll[r.id]) cryptoAll[r.id].sparkline_in_7d = s;
+    if (detailItem?.id === r.id && $("#sparkBox")) $("#sparkBox").innerHTML = sparkSVG(s.price);
+  } catch { if (detailItem?.id === r.id && $("#sparkBox")) $("#sparkBox").innerHTML = ""; }
+}
+function isInList(kind, id) { return kind === "stock" ? L.stocks.some(x => x[0] === id) : visibleCryptoIds().includes(id); }
 function closeSheet() { $("#sheet").classList.remove("open"); detailItem = null; }
 $("#sheetClose").onclick = closeSheet;
 addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
@@ -680,22 +798,71 @@ async function loadNews(r) {
 
 // =================== Kripto datası (CoinGecko) ===================
 async function loadCrypto() {
-  const ids = [...new Set([...L.crypto.map(c => c.id), ...portfolio.filter(p => p.kind === "crypto").map(p => p.id), ...alerts.filter(a => a.kind === "crypto").map(a => a.id), ...cmpSel.filter(Boolean)])];
-  if (!ids.length) { cryptoLoaded = true; refreshVisible(); return; }
   try {
-    const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.slice(0, 250).join(","))}&order=market_cap_desc&per_page=250&sparkline=true&price_change_percentage=1h,24h,7d,30d`);
-    if (!res.ok) throw new Error(res.status === 429 ? "çox sorğu, bir az gözləyin" : "xəta " + res.status);
-    (await res.json()).forEach(c => { if (c.market_cap != null) cryptoAll[c.id] = c; });
+    // 1) Avtomatik: ən böyük N kripto (bir sorğu)
+    if (L.cryptoTop > 0) {
+      const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${Math.min(250, L.cryptoTop)}&page=1&price_change_percentage=1h,24h,7d,30d`);
+      if (!res.ok) throw new Error(res.status === 429 ? "çox sorğu, bir az gözləyin" : "xəta " + res.status);
+      const arr = await res.json();
+      arr.forEach(storeCoin);
+      topCryptoIds = arr.map(c => c.id);
+    }
+    // 2) Əlavə etdikləriniz + portfel + xəbərdarlıqlar + müqayisə
+    const top = new Set(topCryptoIds.slice(0, L.cryptoTop));
+    const extra = [...new Set([...L.crypto.map(c => c.id), ...portfolio.filter(p => p.kind === "crypto").map(p => p.id), ...alerts.filter(a => a.kind === "crypto").map(a => a.id), ...cmpSel.filter(Boolean)])].filter(id => !top.has(id));
+    if (extra.length) {
+      const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(extra.slice(0, 250).join(","))}&per_page=250&price_change_percentage=1h,24h,7d,30d`);
+      if (res.ok) (await res.json()).forEach(storeCoin);
+    }
     cryptoErr = ""; cryptoLoaded = true;
     let changed = false;
     L.crypto.forEach(c => { const d = cryptoAll[c.id]; if (d && c.sym !== d.symbol.toUpperCase()) { c.sym = d.symbol.toUpperCase(); c.name = d.name; changed = true; } });
     if (changed) saveLists();
+    rebuildSymToId();
+    connectBinance();
   } catch (e) { cryptoErr = "Kripto datası yüklənmədi (" + e.message + "). 60 san. sonra yenidən."; }
   checkAlerts();
   refreshVisible();
 }
+function storeCoin(c) {
+  if (c.market_cap == null) return;
+  const old = cryptoAll[c.id];
+  if (old?.sparkline_in_7d && !c.sparkline_in_7d) c.sparkline_in_7d = old.sparkline_in_7d;
+  cryptoAll[c.id] = c;
+}
+function rebuildSymToId() {
+  const m = {};
+  Object.values(cryptoAll).sort((a, b) => (a.market_cap_rank || 1e9) - (b.market_cap_rank || 1e9))
+    .forEach(c => { const s = c.symbol.toUpperCase(); if (!m[s]) m[s] = c.id; });
+  symToId = m;
+}
 async function loadFng() {
   try { const r = await (await fetch("https://api.alternative.me/fng/?limit=1")).json(); fng = r.data?.[0] || null; if (view === "crypto") renderStrips(); } catch {}
+}
+
+// =================== Kripto: Binance real vaxt axını (açarsız) ===================
+let bws = null, bwsLive = false;
+function connectBinance() {
+  if (bws) return;
+  try { bws = new WebSocket("wss://stream.binance.com:9443/ws/!miniTicker@arr"); } catch { bws = null; return; }
+  bws.onmessage = e => {
+    let arr; try { arr = JSON.parse(e.data); } catch { return; }
+    bwsLive = true;
+    for (const t of arr) {
+      if (!t.s.endsWith("USDT")) continue;
+      const id = symToId[t.s.slice(0, -4)]; if (!id) continue;
+      const c = cryptoAll[id]; if (!c) continue;
+      const p = +t.c, o = +t.o; if (!p) continue;
+      // qiymət CoinGecko-dakından çox fərqlidirsə, eyni simvollu başqa tokendir — keç
+      if (c.current_price && Math.abs(p / c.current_price - 1) > 0.15) continue;
+      c.current_price = p;
+      if (o) c.price_change_percentage_24h_in_currency = (p / o - 1) * 100;
+      c.high_24h = +t.h; c.low_24h = +t.l;
+      markLive("crypto", id);
+    }
+  };
+  bws.onclose = () => { bws = null; bwsLive = false; setStatus(); setTimeout(connectBinance, 15000); };
+  bws.onerror = () => {};
 }
 
 // =================== Səhm datası (Finnhub) ===================
@@ -706,28 +873,70 @@ async function finnhub(path) {
   if (!res.ok) throw new Error("xəta " + res.status);
   return res.json();
 }
+const fhSym = t => t.replace("-", ".");
+// Əvvəl portfel və xəbərdarlıqlar, sonra ən böyük şirkətlər
+function stockPriority() {
+  return [...new Set([...portfolio.filter(p => p.kind === "stock").map(p => p.id), ...alerts.filter(a => a.kind === "stock").map(a => a.id), ...[...L.stocks].sort((a, b) => (b[2] || 0) - (a[2] || 0)).map(x => x[0])])];
+}
+let stockDone = 0, stockTotal = 0;
 async function loadStocks() {
   const run = ++stockRun;
-  if (!getKey()) { stockMsg = "Səhmlər: demo data"; setStatus(); return; }
+  connectFinnhubWS();
+  if (!getKey()) { stockMsg = ""; setStatus(); return; }
+  stockMsg = "";
   while (run === stockRun) {
-    const tickers = [...new Set([...portfolio.filter(p => p.kind === "stock").map(p => p.id), ...alerts.filter(a => a.kind === "stock").map(a => a.id), ...L.stocks.map(x => x[0])])];
-    let ok = 0;
+    const tickers = stockPriority();
+    stockTotal = tickers.length;
     for (let i = 0; i < tickers.length && run === stockRun; i++) {
       const t = tickers[i];
       try {
-        const q = await finnhub(`quote?symbol=${encodeURIComponent(t.replace("-", "."))}`);
-        if (q && q.c) { live[t] = { price: q.c, chg: q.dp || 0, high: q.h, low: q.l, prev: q.pc }; ok++; }
+        const q = await finnhub(`quote?symbol=${encodeURIComponent(fhSym(t))}`);
+        if (q && q.c) {
+          const l = live[t];
+          // real vaxt axını son dəqiqədə daha təzə qiymət veribsə, onu saxla
+          const price = l?.wsAt && Date.now() - l.wsAt < 60000 ? l.price : q.c;
+          live[t] = { price, chg: q.pc ? (price / q.pc - 1) * 100 : (q.dp || 0), high: q.h, low: q.l, prev: q.pc, wsAt: l?.wsAt };
+          markLive("stock", t);
+        }
       } catch (e) {
         if (e.code === "auth") { stockMsg = "Finnhub açarı qəbul olunmadı. Siyahım bölməsində yoxlayın."; setStatus(); return; }
-        if (e.code === "limit") { stockMsg = "Limit doldu, gözlənilir…"; setStatus(); await sleep(15000); i--; continue; }
+        if (e.code === "limit") { await sleep(15000); i--; continue; }
       }
-      stockMsg = `Canlı (Finnhub): ${i + 1}/${tickers.length}`;
-      if ((i + 1) % 10 === 0 || i === tickers.length - 1) { checkAlerts(); refreshVisible(); } else if (view === "stocks") setStatus();
+      stockDone = i + 1;
       await sleep(1100);   // pulsuz plan: dəqiqədə 60 sorğu
     }
-    stockMsg = `Canlı (Finnhub) · ${ok} səhm · ${fmtTime(Date.now())}`;
-    checkAlerts(); refreshVisible();
   }
+}
+
+// Səhmlər: Finnhub real vaxt axını (pulsuz planda 50 səhmə qədər)
+let fws = null, fwsSubs = new Set(), fwsLive = 0;
+const fromFh = {};
+function connectFinnhubWS() {
+  if (!getKey()) { if (fws) { const w = fws; fws = null; w.close(); } return; }
+  if (fws) { syncFinnhubWS(); return; }
+  try { fws = new WebSocket(`wss://ws.finnhub.io?token=${encodeURIComponent(getKey())}`); } catch { fws = null; return; }
+  fwsSubs = new Set();
+  const me = fws;
+  fws.onopen = syncFinnhubWS;
+  fws.onmessage = e => {
+    let m; try { m = JSON.parse(e.data); } catch { return; }
+    if (m.type !== "trade" || !m.data) return;
+    fwsLive = Date.now();
+    for (const tr of m.data) {
+      const t = fromFh[tr.s] || tr.s; const l = live[t]; if (!l) continue;
+      l.price = tr.p; l.wsAt = Date.now();
+      if (l.prev) l.chg = (tr.p / l.prev - 1) * 100;
+      markLive("stock", t);
+    }
+  };
+  fws.onclose = () => { if (fws === me) { fws = null; if (getKey()) setTimeout(connectFinnhubWS, 15000); } };
+  fws.onerror = () => {};
+}
+function syncFinnhubWS() {
+  if (!fws || fws.readyState !== 1) return;
+  const want = new Set(stockPriority().slice(0, 50));
+  for (const s of [...fwsSubs]) if (!want.has(s)) { fws.send(JSON.stringify({ type: "unsubscribe", symbol: fhSym(s) })); fwsSubs.delete(s); }
+  for (const s of want) if (!fwsSubs.has(s)) { fromFh[fhSym(s)] = s; fws.send(JSON.stringify({ type: "subscribe", symbol: fhSym(s) })); fwsSubs.add(s); }
 }
 
 // =================== Kripto axtarışı ===================
@@ -868,7 +1077,7 @@ const cmpSel = store.get("cmpSel", ["bitcoin", "ethereum", "solana"]);
 const CMP_COLORS = ["#58a6ff", "#f0b429", "#c084fc"];
 const chartCache = {};
 function fillCmpSelects() {
-  const opts = [...new Map([...L.crypto.map(c => [c.id, c.sym || c.id]), ...portfolio.filter(p => p.kind === "crypto").map(p => [p.id, p.sym]), ...cmpSel.filter(Boolean).map(id => [id, cryptoAll[id]?.symbol?.toUpperCase() || id])])];
+  const opts = [...new Map([...visibleCryptoIds().filter(id => cryptoAll[id]).map(id => [id, cryptoAll[id].symbol.toUpperCase()]), ...L.crypto.map(c => [c.id, c.sym || c.id]), ...portfolio.filter(p => p.kind === "crypto").map(p => [p.id, p.sym]), ...cmpSel.filter(Boolean).map(id => [id, cryptoAll[id]?.symbol?.toUpperCase() || id])])];
   ["#cmpA", "#cmpB", "#cmpC"].forEach((s, i) => {
     $(s).innerHTML = `<option value="">— seçin —</option>` + opts.map(([id, sym]) => `<option value="${esc(id)}">${esc(sym)}</option>`).join("");
     $(s).value = cmpSel[i] || "";
@@ -919,7 +1128,22 @@ function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))), n 
 
 // =================== Siyahılar ===================
 function removeStock(t) { L.stocks = L.stocks.filter(x => x[0] !== t); saveLists(); refreshAll(); }
-function removeCrypto(id) { L.crypto = L.crypto.filter(c => c.id !== id); saveLists(); refreshAll(); }
+function removeCrypto(id) {
+  // əlavə etdiklərimdəndirsə sil; avtomatik "ən böyüklər" siyahısındandırsa gizlət
+  L.crypto = L.crypto.filter(c => c.id !== id);
+  if (topCryptoIds.slice(0, L.cryptoTop).includes(id) && !L.cryptoHide.includes(id)) L.cryptoHide.push(id);
+  saveLists(); refreshAll();
+}
+// Axtarışdan və ya detal panelindən siyahıya əlavə
+async function addToList(o) {
+  if (o.kind === "stock") {
+    const r = await addStockTicker(o.id, "");
+    toast(r.ok ? "✓ Əlavə olundu" : "Əlavə olunmadı", r.text);
+  } else {
+    const r = addCryptoCoin({ id: o.id, sym: o.sym, name: o.name });
+    toast(r.ok ? "✓ Əlavə olundu" : "Diqqət", r.text);
+  }
+}
 function fillListSelects() {
   const html = Object.keys(lists.data).map(n => `<option value="${esc(n)}">Siyahı: ${esc(n)}</option>`).join("");
   $("#listSel").innerHTML = html; $("#listSel2").innerHTML = html;
@@ -936,7 +1160,7 @@ $("#newListBtn").onclick = () => {
   const n = $("#newListName").value.trim().slice(0, 30), msg = $("#listMsg");
   if (!n) { setMsg(msg, "Siyahının adını yazın.", "err"); return; }
   if (lists.data[n]) { setMsg(msg, "Bu adda siyahı artıq var.", "warn"); return; }
-  lists.data[n] = { stocks: [], crypto: [] };
+  lists.data[n] = { stocks: [], crypto: [], cryptoTop: 0, cryptoHide: [] };
   $("#newListName").value = "";
   setMsg(msg, `"${n}" yaradıldı. İndi ona səhm və kripto əlavə edin.`, "ok");
   setActiveList(n);
@@ -953,25 +1177,37 @@ function fillSectorSelect() {
   const secs = [...new Set([...DEFAULT_STOCKS.map(x => x[1]), ...L.stocks.map(x => x[1])])];
   $("#stockSector").innerHTML = `<option value="">Sektor: avtomatik</option>` + secs.map(s => `<option>${esc(s)}</option>`).join("") + `<option>DİGƏR</option>`;
 }
-async function addStock() {
-  const msg = $("#stockMsg"), t = cleanTicker($("#stockIn").value);
-  if (!t) return;
-  if (L.stocks.some(x => x[0] === t)) { setMsg(msg, `${t} artıq siyahıdadır.`, "warn"); return; }
-  let sector = $("#stockSector").value, cap = 50;
-  if (getKey()) {
-    setMsg(msg, "Yoxlanılır…");
+async function addStockTicker(t, sector) {
+  t = cleanTicker(t);
+  if (!t) return { ok: false, text: "Ticker yazın." };
+  if (L.stocks.some(x => x[0] === t)) return { ok: false, text: `${t} artıq siyahıdadır.`, warn: true };
+  let cap = UNIVERSE_MAP[t]?.[2] || 50;
+  sector ||= UNIVERSE_MAP[t]?.[1] || "";
+  if (getKey() && !UNIVERSE_MAP[t]) {
     try {
-      const p = await finnhub(`stock/profile2?symbol=${encodeURIComponent(t.replace("-", "."))}`);
-      if (!p || !p.ticker) { setMsg(msg, `${t} tapılmadı. Ticker-i yoxlayın (ABŞ birjaları).`, "err"); return; }
+      const p = await finnhub(`stock/profile2?symbol=${encodeURIComponent(fhSym(t))}`);
+      if (!p || !p.ticker) return { ok: false, text: `${t} tapılmadı. Ticker-i yoxlayın (ABŞ birjaları).` };
       cap = (p.marketCapitalization || 50000) / 1000;
       if (!sector) { const ind = (p.finnhubIndustry || "").toLowerCase(); sector = SECTOR_MAP[ind] || (p.finnhubIndustry || "DİGƏR").toUpperCase(); }
-    } catch (e) { setMsg(msg, e.message, "err"); return; }
+    } catch (e) { return { ok: false, text: e.message }; }
   }
-  L.stocks.push([t, sector || "DİGƏR", cap, null]);
-  saveLists();
-  $("#stockIn").value = "";
-  setMsg(msg, `${t} əlavə olundu.` + (getKey() ? "" : " Açar olmadan qiymət görünməyəcək."), "ok");
-  refreshAll();
+  L.stocks.push([t, sector || "DİGƏR", cap, DEMO[t] ?? null]);
+  saveLists(); refreshAll(); syncFinnhubWS();
+  return { ok: true, text: `${t} siyahıya əlavə olundu.` + (getKey() ? "" : " Canlı qiymət üçün Finnhub açarı lazımdır.") };
+}
+function addCryptoCoin(c) {
+  if (isInList("crypto", c.id)) return { ok: false, text: `${c.sym} artıq siyahıdadır.`, warn: true };
+  L.cryptoHide = L.cryptoHide.filter(id => id !== c.id);
+  if (!isInList("crypto", c.id)) L.crypto.push({ id: c.id, sym: c.sym, name: c.name });
+  saveLists(); renderLists(); loadCrypto();
+  return { ok: true, text: `${c.name || c.sym} (${c.sym}) siyahıya əlavə olundu.` };
+}
+async function addStock() {
+  const msg = $("#stockMsg");
+  setMsg(msg, "Yoxlanılır…");
+  const r = await addStockTicker($("#stockIn").value, $("#stockSector").value);
+  setMsg(msg, r.text, r.ok ? "ok" : r.warn ? "warn" : "err");
+  if (r.ok) $("#stockIn").value = "";
 }
 async function addCrypto() {
   const msg = $("#cryptoMsg"), q = $("#cryptoIn").value.trim();
@@ -980,29 +1216,33 @@ async function addCrypto() {
   try {
     const c = await resolveCrypto(q);
     if (!c) { setMsg(msg, `"${q}" tapılmadı.`, "err"); return; }
-    if (L.crypto.some(x => x.id === c.id)) { setMsg(msg, `${c.sym} artıq siyahıdadır.`, "warn"); return; }
-    L.crypto.push(c); saveLists();
-    $("#cryptoIn").value = "";
-    setMsg(msg, `${c.name} (${c.sym}) əlavə olundu.`, "ok");
-    renderLists(); loadCrypto();
+    const r = addCryptoCoin(c);
+    setMsg(msg, r.text, r.ok ? "ok" : "warn");
+    if (r.ok) $("#cryptoIn").value = "";
   } catch (e) { setMsg(msg, "Axtarış alınmadı: " + e.message, "err"); }
 }
 function renderLists() {
   fillListSelects();
   $("#stockCount").textContent = L.stocks.length;
-  $("#cryptoCount").textContent = L.crypto.length;
-  const mk = (box, items) => {
+  const vis = visibleCryptoIds();
+  $("#cryptoCount").textContent = vis.length;
+  $("#cryptoTop").value = String(L.cryptoTop);
+  const mk = (box, items, sym = "×", label = "Çıxar") => {
     box.innerHTML = "";
     if (!items.length) { box.innerHTML = `<p class="empty">Boşdur.</p>`; return; }
     items.forEach(([t, s, rm]) => {
       const row = document.createElement("div"); row.className = "li";
-      row.innerHTML = `<span class="t"></span><span class="s"></span><button class="x" aria-label="Çıxar">×</button>`;
+      row.innerHTML = `<span class="t"></span><span class="s"></span><button class="x" aria-label="${label}">${sym}</button>`;
       row.querySelector(".t").textContent = t; row.querySelector(".s").textContent = s;
       row.querySelector("button").onclick = rm; box.appendChild(row);
     });
   };
   mk($("#stockList"), [...L.stocks].sort((a, b) => a[1].localeCompare(b[1]) || b[2] - a[2]).map(([t, sec]) => [t, sec, () => removeStock(t)]));
-  mk($("#cryptoList"), L.crypto.map(c => [c.sym || c.id, c.name || c.id, () => removeCrypto(c.id)]));
+  const nm = id => [cryptoAll[id]?.symbol?.toUpperCase() || L.crypto.find(c => c.id === id)?.sym || id, (cryptoAll[id]?.name || L.crypto.find(c => c.id === id)?.name || id) + (cryptoAll[id]?.market_cap_rank ? ` · #${cryptoAll[id].market_cap_rank}` : "")];
+  mk($("#cryptoList"), vis.map(id => [...nm(id), () => removeCrypto(id)]));
+  $("#cryptoListNote").textContent = L.cryptoTop ? `Ən böyük ${L.cryptoTop} kripto avtomatik yenilənir${L.crypto.length ? ` + əlavə etdiyiniz ${L.crypto.length}` : ""}. × basanda gizlədilir.` : "";
+  $("#hiddenWrap").hidden = !L.cryptoHide.length;
+  mk($("#hiddenList"), L.cryptoHide.map(id => [...nm(id), () => { L.cryptoHide = L.cryptoHide.filter(x => x !== id); saveLists(); refreshAll(); }]), "↺", "Geri qaytar");
   fillSectorSelect();
   setMsg($("#keyMsg"), getKey() ? "✓ Açar saxlanılıb." : "Açar yoxdur: səhmlər demo datadır.", getKey() ? "ok" : "");
 }
@@ -1014,7 +1254,8 @@ function twoStep(btn, labelText, action) {
   };
 }
 twoStep($("#resetStocks"), "Standart səhmləri qaytar", () => { L.stocks = defaultList().stocks; saveLists(); refreshAll(); });
-twoStep($("#resetCrypto"), "Standart kriptoları qaytar", () => { L.crypto = defaultList().crypto; saveLists(); renderLists(); loadCrypto(); });
+twoStep($("#resetCrypto"), "Standart kriptoları qaytar", () => { L.crypto = []; L.cryptoHide = []; L.cryptoTop = DEFAULT_CRYPTO_TOP; saveLists(); renderLists(); loadCrypto(); });
+$("#cryptoTop").onchange = e => { L.cryptoTop = +e.target.value; saveLists(); renderLists(); loadCrypto(); };
 $("#addStock").onsubmit = e => { e.preventDefault(); addStock(); };
 $("#addCrypto").onsubmit = e => { e.preventDefault(); addCrypto(); };
 $("#keyForm").onsubmit = e => {
@@ -1083,7 +1324,18 @@ $("#calMine").onchange = renderCalendar;
 
 // =================== Görünüş ===================
 function setStatus() {
-  $("#status").textContent = view === "stocks" ? stockMsg : view === "crypto" ? (cryptoErr || (cryptoLoaded ? `Canlı (CoinGecko) · hər 60 san.` : "Yüklənir…")) : "";
+  const s = $("#status");
+  const dot = on => `<span class="dot${on ? "" : " off"}"></span>`;
+  if (view === "stocks") {
+    if (!getKey()) { s.innerHTML = `${dot(false)}Səhmlər: demo (açar yoxdur)`; return; }
+    if (stockMsg) { s.textContent = stockMsg; return; }
+    const ws = fwsLive && Date.now() - fwsLive < 120000;
+    s.innerHTML = `${dot(true)}Canlı${ws ? " · real vaxt" : ""} · ${Object.keys(live).length}/${stockTotal || L.stocks.length} səhm yükləndi` + (ws ? "" : `<span style="opacity:.7"> · bazar bağlıdırsa son qiymətlər</span>`);
+  } else if (view === "crypto") {
+    if (cryptoErr) { s.textContent = cryptoErr; return; }
+    if (!cryptoLoaded) { s.textContent = "Yüklənir…"; return; }
+    s.innerHTML = bwsLive ? `${dot(true)}Real vaxt (Binance) · ${cryptoItems().length} kripto` : `${dot(true)}Canlı (CoinGecko, hər 60 san.) · ${cryptoItems().length} kripto`;
+  } else s.textContent = "";
 }
 function switchView(v) {
   view = v;
@@ -1092,7 +1344,7 @@ function switchView(v) {
   $("#mapView").hidden = !isMap;
   $("#portfolioView").hidden = v !== "portfolio"; $("#compareView").hidden = v !== "compare";
   $("#calView").hidden = v !== "calendar"; $("#listView").hidden = v !== "list";
-  $("#searchBox").hidden = !isMap; $("#size").hidden = !isMap;
+  $("#size").hidden = !isMap; hideSugg();
   $("#listSel").hidden = !(isMap || v === "list");
   $("#period").hidden = v !== "crypto";
   $("#size").querySelector('[value="volume"]').hidden = v !== "crypto";
@@ -1111,13 +1363,112 @@ function refreshVisible() {
 function refreshAll() { renderLists(); refreshVisible(); loadStocks(); }
 
 document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => switchView(b.dataset.view));
-$("#q").oninput = e => { query = e.target.value; applySearch(); };
-$("#q").onkeydown = e => {
-  if (e.key !== "Enter") return;
-  const q = query.trim().toLowerCase();
-  const hit = currentItems.find(i => i.name.toLowerCase() === q) || currentItems.find(i => i.name.toLowerCase().startsWith(q) || (i.full || "").toLowerCase().includes(q));
-  if (hit) openDetail(hit);
+// =================== Axtarış (bütün bazar) ===================
+const sugg = $("#sugg");
+let sT = null, searchSeq = 0, suggRows = [], suggAct = -1;
+function hideSugg() { sugg.hidden = true; suggAct = -1; }
+$("#q").oninput = e => {
+  query = e.target.value;
+  if (view === "stocks" || view === "crypto") applySearch();
+  clearTimeout(sT); sT = setTimeout(globalSearch, 250);
 };
+$("#q").onfocus = () => { if (query.trim() && suggRows.length) sugg.hidden = false; };
+$("#q").onkeydown = e => {
+  if (e.key === "Escape") { hideSugg(); return; }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (!suggRows.length) return; e.preventDefault();
+    suggAct = (suggAct + (e.key === "ArrowDown" ? 1 : -1) + suggRows.length) % suggRows.length;
+    sugg.querySelectorAll(".sg").forEach((r, i) => r.classList.toggle("act", i === suggAct)); return;
+  }
+  if (e.key !== "Enter") return;
+  const o = suggRows[Math.max(0, suggAct)];
+  if (o) { hideSugg(); openAny(o); }
+};
+document.addEventListener("pointerdown", e => { if (!$("#searchBox").contains(e.target)) hideSugg(); });
+
+async function globalSearch() {
+  const q = query.trim(), seq = ++searchSeq;
+  if (!q) { suggRows = []; hideSugg(); return; }
+  const ql = q.toLowerCase(), QU = q.toUpperCase();
+  const res = [], seen = new Set();
+  const push = o => { const k = o.kind + ":" + o.id; if (seen.has(k)) return; seen.add(k); res.push(o); };
+  // 1) Yaddaşdakı səhmlər (geniş siyahı + sizin siyahılarınız)
+  const stockPool = new Map(UNIVERSE.map(x => [x[0], x]));
+  Object.values(lists.data).forEach(l => l.stocks.forEach(x => { if (!stockPool.has(x[0])) stockPool.set(x[0], x); }));
+  [...stockPool.values()].filter(x => x[0].startsWith(QU)).sort((a, b) => (a[0] === QU ? -1 : 0) - (b[0] === QU ? -1 : 0) || b[2] - a[2]).slice(0, 6)
+    .forEach(x => push({ kind: "stock", id: x[0], sym: x[0], name: x[1] }));
+  // 2) Yaddaşdakı kriptolar
+  Object.values(cryptoAll).filter(c => c.symbol.toLowerCase().startsWith(ql) || (ql.length >= 3 ? c.name.toLowerCase().includes(ql) : c.name.toLowerCase().startsWith(ql)))
+    .sort((a, b) => (a.symbol.toLowerCase() === ql ? -1 : 0) - (b.symbol.toLowerCase() === ql ? -1 : 0) || (a.market_cap_rank || 1e9) - (b.market_cap_rank || 1e9)).slice(0, 6)
+    .forEach(c => push({ kind: "crypto", id: c.id, sym: c.symbol.toUpperCase(), name: c.name }));
+  renderSugg(res, true);
+  // 3) Bütün bazar: CoinGecko (bütün kriptolar) və Finnhub (bütün ABŞ səhmləri)
+  const tasks = [];
+  if (q.length >= 2) tasks.push(fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`).then(r => r.ok ? r.json() : null)
+    .then(d => (d?.coins || []).slice(0, 8).forEach(c => push({ kind: "crypto", id: c.id, sym: c.symbol.toUpperCase(), name: c.name, rank: c.market_cap_rank }))));
+  if (getKey()) tasks.push(finnhub(`search?q=${encodeURIComponent(q)}&exchange=US`)
+    .then(d => (d?.result || []).filter(r => ["Common Stock", "ETP", "ADR"].includes(r.type) && /^[A-Z]{1,5}(\.[A-Z])?$/.test(r.symbol)).slice(0, 8)
+      .forEach(r => push({ kind: "stock", id: r.symbol.replace(".", "-"), sym: r.symbol.replace(".", "-"), name: r.description + (r.type === "ETP" ? " (ETF)" : "") }))));
+  await Promise.allSettled(tasks);
+  if (seq === searchSeq) renderSugg(res, false);
+}
+function suggPrice(o) {
+  const q = quoteOf(o.kind, o.id);
+  return q && q.price ? `${money(q.price)}<br><span class="${cls(q.chg)}">${pct(q.chg)}</span>` : "";
+}
+function renderSugg(res, loading) {
+  suggRows = res.slice(0, 16); suggAct = -1;
+  sugg.innerHTML = "";
+  const head = document.createElement("div"); head.className = "sg-h";
+  head.textContent = loading ? "Axtarılır…" : res.length ? `${res.length > 16 ? 16 : res.length} nəticə · basın: aç · + : siyahıya əlavə et` : "Heç nə tapılmadı";
+  sugg.appendChild(head);
+  if (!loading && !getKey() && /^[a-z]{1,5}$/i.test(query.trim())) {
+    const n = document.createElement("div"); n.className = "sg-h"; n.style.position = "static";
+    n.textContent = "Bütün ABŞ səhmlərində axtarmaq üçün Finnhub açarı əlavə edin (Siyahım).";
+    sugg.appendChild(n);
+  }
+  suggRows.forEach(o => {
+    const row = document.createElement("div"); row.className = "sg";
+    const inL = isInList(o.kind, o.id);
+    row.innerHTML = `<span class="tag">${o.kind === "stock" ? "səhm" : "kripto"}</span><b></b><span class="nm"></span><span class="pr">${suggPrice(o)}</span><button class="add${inL ? " in" : ""}" title="${inL ? "Siyahıdadır" : "Siyahıya əlavə et"}" aria-label="${inL ? "Siyahıdadır" : "Siyahıya əlavə et"}">${inL ? "✓" : "+"}</button>`;
+    row.querySelector("b").textContent = o.sym;
+    row.querySelector(".nm").textContent = o.name || "";
+    row.dataset.key = o.kind + ":" + o.id;
+    row.onclick = () => { hideSugg(); openAny(o); };
+    row.querySelector(".add").onclick = async ev => {
+      ev.stopPropagation();
+      if (isInList(o.kind, o.id)) return;
+      await addToList(o);
+      const b = row.querySelector(".add"); if (isInList(o.kind, o.id)) { b.textContent = "✓"; b.classList.add("in"); }
+    };
+    sugg.appendChild(row);
+  });
+  sugg.hidden = false;
+}
+function refreshSuggPrices() {
+  sugg.querySelectorAll(".sg").forEach((row, i) => { const o = suggRows[i]; if (o) row.querySelector(".pr").innerHTML = suggPrice(o); });
+}
+// Siyahıda olmayan aktivi də açır
+async function openAny(o) {
+  if (o.kind === "crypto") {
+    let c = cryptoAll[o.id];
+    if (!c) {
+      try {
+        const a = await (await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(o.id)}&sparkline=true&price_change_percentage=1h,24h,7d,30d`)).json();
+        if (a?.[0]) { storeCoin(a[0]); c = cryptoAll[o.id]; rebuildSymToId(); }
+      } catch {}
+    }
+    if (c) openDetail(cryptoItem(c)); else toast("Xəta", `${o.sym} məlumatı yüklənmədi.`);
+  } else {
+    const t = o.id, meta = L.stocks.find(x => x[0] === t) || UNIVERSE_MAP[t];
+    if (!live[t] && getKey()) {
+      try { const q = await finnhub(`quote?symbol=${encodeURIComponent(fhSym(t))}`); if (q?.c) live[t] = { price: q.c, chg: q.dp || 0, high: q.h, low: q.l, prev: q.pc }; } catch {}
+    }
+    const it = stockItem(t, meta?.[1] || "—", meta?.[2], meta?.[3]);
+    if (o.name && o.name !== it.sector) it.full = o.name;
+    openDetail(it);
+  }
+}
 $("#period").value = prefs.period; $("#size").value = prefs.size; $("#cur").value = prefs.cur;
 $("#period").onchange = e => { prefs.period = e.target.value; savePrefs(); renderMap(); };
 $("#size").onchange = e => { prefs.size = e.target.value; savePrefs(); renderMap(); };
@@ -1133,6 +1484,7 @@ loadRates().then(() => { if (prefs.cur !== "USD") switchView(view); });
 loadStocks();
 loadCrypto(); setInterval(loadCrypto, 60000);
 loadFng(); setInterval(loadFng, 30 * 60000);
+setInterval(setStatus, 5000);
 
 // =================== Telefona quraşdırma (PWA) ===================
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
